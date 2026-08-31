@@ -35,12 +35,20 @@ use) for the agent features.
 
 ## Connecting a provider
 
-`/dashboard/connections` lets a signed-in user add a provider key. Anthropic
-and OpenAI both require an **org/Admin-level API key** for usage-reporting
-access, not a regular per-project key — the connect form validates against
-each provider's usage endpoint and will reject a regular key with a message
-saying so. The Bedrock connector needs no real key; it's flagged for
-generating synthetic data in Phase 4.
+`/dashboard/connections` lets a signed-in user add a provider key and click
+"Sync now" to backfill `usage_records`. Anthropic and OpenAI both require an
+**org/Admin-level API key** for usage-reporting access, not a regular
+per-project key — the connect form validates against each provider's usage
+endpoint and will reject a regular key with a message saying so. The
+Bedrock connector needs no real key; syncing it generates a realistic
+synthetic dataset instead (`src/lib/ingestion/bedrock-synthetic.ts`).
+
+The real Anthropic/OpenAI ingestion code
+(`src/lib/ingestion/{anthropic,openai}.ts`) is built against each
+provider's documented usage-API response shape but hasn't been exercised
+against a live Admin key — if a real sync ever fails or looks wrong, the
+thrown error includes the raw response body to make the field-mapping fix
+easy.
 
 ## Deploy
 

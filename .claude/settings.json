@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(git ls-remote *)",
-      "Bash(echo \"exit code: $?\")"
+      "Bash(echo \"exit code: $?\")",
+      "Bash(git commit -m 'Phase 3: provider connections with Vault-encrypted key storage *)",
+      "Bash(git push *)",
+      "Bash(node test-sync-flow.mjs)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Phase 4: ingestion pipeline \\(Bedrock synthetic + Anthropic/OpenAI\\) *)"
     ]
   }
 }

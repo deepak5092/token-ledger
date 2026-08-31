@@ -2,13 +2,15 @@ import { createClient } from "@/lib/supabase/server";
 import { PROVIDERS } from "@/lib/providers/types";
 import { ConnectionForm } from "./ConnectionForm";
 import { removeConnection } from "./actions";
+import { syncConnection } from "./sync-actions";
+import { SyncButton } from "./SyncButton";
 
 export default async function ConnectionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; synced?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, synced } = await searchParams;
   const supabase = await createClient();
 
   const { data: connections } = await supabase
@@ -38,6 +40,12 @@ export default async function ConnectionsPage({
         </p>
       )}
 
+      {synced !== undefined && (
+        <p className="mt-4 max-w-2xl rounded bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+          Synced {synced} usage record{synced === "1" ? "" : "s"}.
+        </p>
+      )}
+
       <div className="mt-6 max-w-md">
         <ConnectionForm />
       </div>
@@ -60,15 +68,21 @@ export default async function ConnectionsPage({
                     : "Never synced"}
                 </p>
               </div>
-              <form action={removeConnection}>
-                <input type="hidden" name="connectionId" value={c.id} />
-                <button
-                  type="submit"
-                  className="rounded border border-zinc-300 px-3 py-1.5 text-sm text-red-700 dark:border-zinc-700 dark:text-red-400"
-                >
-                  Remove
-                </button>
-              </form>
+              <div className="flex gap-2">
+                <form action={syncConnection}>
+                  <input type="hidden" name="connectionId" value={c.id} />
+                  <SyncButton />
+                </form>
+                <form action={removeConnection}>
+                  <input type="hidden" name="connectionId" value={c.id} />
+                  <button
+                    type="submit"
+                    className="rounded border border-zinc-300 px-3 py-1.5 text-sm text-red-700 dark:border-zinc-700 dark:text-red-400"
+                  >
+                    Remove
+                  </button>
+                </form>
+              </div>
             </div>
           ))
         ) : (
