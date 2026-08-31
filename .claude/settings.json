@@ -7,7 +7,13 @@
       "Bash(git push *)",
       "Bash(node test-sync-flow.mjs)",
       "Bash(git add *)",
-      "Bash(git commit -m 'Phase 4: ingestion pipeline \\(Bedrock synthetic + Anthropic/OpenAI\\) *)"
+      "Bash(git commit -m 'Phase 4: ingestion pipeline \\(Bedrock synthetic + Anthropic/OpenAI\\) *)",
+      "Bash(node screenshot-dashboard-only.mjs)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs -I{} kill {})"
+    ],
+    "additionalDirectories": [
+      "/private/tmp"
     ]
   }
 }
