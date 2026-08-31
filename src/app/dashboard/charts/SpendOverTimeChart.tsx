@@ -1,15 +1,17 @@
 "use client";
 
 import {
+  Area,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
   CartesianGrid,
 } from "recharts";
-import type { AnomalyPoint } from "@/lib/dashboard/anomaly";
+import type { TooltipContentProps } from "recharts";
+import type { ChartPoint } from "@/lib/dashboard/forecast-chart";
 
 const currency = (n: number) =>
   n.toLocaleString(undefined, { style: "currency", currency: "USD" });
@@ -18,7 +20,7 @@ type AnomalyDotProps = {
   cx?: number;
   cy?: number;
   index?: number;
-  payload?: AnomalyPoint;
+  payload?: ChartPoint;
 };
 
 function AnomalyDot(props: AnomalyDotProps) {
@@ -44,10 +46,53 @@ function AnomalyDot(props: AnomalyDotProps) {
   );
 }
 
-export function SpendOverTimeChart({ data }: { data: AnomalyPoint[] }) {
+function ChartTooltip({ active, payload, label }: TooltipContentProps) {
+  if (!active || !payload || payload.length === 0) return null;
+  const point = payload[0]?.payload as ChartPoint | undefined;
+  if (!point) return null;
+
+  const isForecast = point.forecastCost != null && point.cost == null;
+  const value = isForecast ? point.forecastCost : point.cost;
+  if (value == null) return null;
+
+  return (
+    <div
+      style={{
+        background: "var(--chart-surface)",
+        border: "1px solid var(--chart-grid)",
+        borderRadius: 6,
+        padding: "6px 10px",
+        fontSize: 12,
+      }}
+    >
+      <div style={{ color: "var(--chart-ink-secondary)" }}>
+        {label}
+        {point.isAnomaly ? ` — ${point.ratio}x 7-day average ⚠` : ""}
+        {isForecast ? " (forecast)" : ""}
+      </div>
+      <div style={{ color: "var(--chart-sequential)" }}>{currency(value)}</div>
+      {isForecast && point.forecastLower != null && point.forecastUpper != null && (
+        <div style={{ color: "var(--chart-ink-muted)" }}>
+          {currency(point.forecastLower)} – {currency(point.forecastUpper)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function SpendOverTimeChart({ data }: { data: ChartPoint[] }) {
+  const chartData = data.map((d) => ({
+    ...d,
+    bandBase: d.forecastLower,
+    bandHeight:
+      d.forecastLower != null && d.forecastUpper != null
+        ? d.forecastUpper - d.forecastLower
+        : undefined,
+  }));
+
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+      <ComposedChart data={chartData} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
         <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
         <XAxis
           dataKey="date"
@@ -63,22 +108,21 @@ export function SpendOverTimeChart({ data }: { data: AnomalyPoint[] }) {
           tickFormatter={(v) => currency(v)}
           width={70}
         />
-        <Tooltip
-          formatter={(value: unknown) => currency(Number(value ?? 0))}
-          labelFormatter={(label, tooltipPayload) => {
-            const point = tooltipPayload?.[0]?.payload as AnomalyPoint | undefined;
-            if (point?.isAnomaly) {
-              return `${label} — ${point.ratio}x 7-day average ⚠`;
-            }
-            return label;
-          }}
-          contentStyle={{
-            background: "var(--chart-surface)",
-            border: "1px solid var(--chart-grid)",
-            borderRadius: 6,
-            fontSize: 12,
-          }}
-          labelStyle={{ color: "var(--chart-ink-secondary)" }}
+        <Tooltip content={ChartTooltip} />
+        <Area
+          dataKey="bandBase"
+          stackId="band"
+          stroke="none"
+          fill="transparent"
+          isAnimationActive={false}
+        />
+        <Area
+          dataKey="bandHeight"
+          stackId="band"
+          stroke="none"
+          fill="var(--chart-sequential)"
+          fillOpacity={0.15}
+          isAnimationActive={false}
         />
         <Line
           type="linear"
@@ -89,7 +133,16 @@ export function SpendOverTimeChart({ data }: { data: AnomalyPoint[] }) {
           activeDot={{ r: 4 }}
           isAnimationActive={false}
         />
-      </LineChart>
+        <Line
+          type="linear"
+          dataKey="forecastCost"
+          stroke="var(--chart-sequential)"
+          strokeWidth={2}
+          strokeDasharray="5 4"
+          dot={false}
+          isAnimationActive={false}
+        />
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }

@@ -14,6 +14,8 @@ import {
   type UsageRow,
 } from "@/lib/dashboard/aggregate";
 import { detectAnomalies } from "@/lib/dashboard/anomaly";
+import { mergeForecast } from "@/lib/dashboard/forecast-chart";
+import { fetchForecast } from "@/lib/forecast/client";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -32,7 +34,12 @@ export default async function DashboardPage() {
   const rows = usageRows ?? [];
   const hasConnections = (connections?.length ?? 0) > 0;
   const hasUsage = rows.length > 0;
-  const spendWithAnomalies = detectAnomalies(dailySpend(rows));
+  const daily = dailySpend(rows);
+  const spendWithAnomalies = detectAnomalies(daily);
+  const forecast = hasUsage
+    ? await fetchForecast(daily.map(({ date, cost }) => ({ date, cost })))
+    : null;
+  const chartData = mergeForecast(spendWithAnomalies, forecast);
 
   return (
     <div className="min-h-screen bg-zinc-50 p-8 dark:bg-black">
@@ -90,9 +97,14 @@ export default async function DashboardPage() {
           <section>
             <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               Spend over time
+              {!forecast && (
+                <span className="ml-2 text-xs font-normal text-zinc-400">
+                  (forecast unavailable)
+                </span>
+              )}
             </h2>
             <div className="mt-2 rounded border border-zinc-200 p-4 dark:border-zinc-800">
-              <SpendOverTimeChart data={spendWithAnomalies} />
+              <SpendOverTimeChart data={chartData} />
             </div>
           </section>
 

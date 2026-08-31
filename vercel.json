@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/forecast.py": {
+      "runtime": "python3.12"
+    }
+  }
+}

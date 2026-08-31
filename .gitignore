@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# python (api/forecast.py local testing)
+__pycache__/
+*.pyc
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
