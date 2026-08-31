@@ -1,4 +1,5 @@
 import type { NormalizedUsageRecord } from "./types";
+import { estimateCost } from "@/lib/pricing/models";
 
 // UNVERIFIED: built against OpenAI's documented organization Usage API
 // shape, but never exercised against a live Admin key. If a real sync fails
@@ -37,14 +38,18 @@ export async function fetchOpenAIUsage(
     for (const bucket of data.data ?? []) {
       const date = new Date(bucket.start_time * 1000).toISOString().slice(0, 10);
       for (const result of bucket.results ?? []) {
+        const model = result.model ?? "unknown";
+        const inputTokens = result.input_tokens ?? 0;
+        const outputTokens = result.output_tokens ?? 0;
         records.push({
           date,
-          model: result.model ?? "unknown",
-          input_tokens: result.input_tokens ?? 0,
-          output_tokens: result.output_tokens ?? 0,
+          model,
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
           // OpenAI's dollar cost comes from a separate Costs API, not this
-          // one. Left at 0 until Phase 8's pricing table backfills it.
-          cost_usd: 0,
+          // one — estimate from the pricing table instead. Falls back to 0
+          // for a model the table doesn't cover.
+          cost_usd: estimateCost(model, inputTokens, outputTokens) ?? 0,
         });
       }
     }

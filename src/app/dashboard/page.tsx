@@ -49,6 +49,12 @@ export default async function DashboardPage() {
         </h1>
         <div className="flex items-center gap-4">
           <Link
+            href="/dashboard/simulator"
+            className="text-sm font-medium underline"
+          >
+            Savings simulator
+          </Link>
+          <Link
             href="/dashboard/connections"
             className="text-sm font-medium underline"
           >
