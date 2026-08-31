@@ -1,6 +1,6 @@
 # Phase 0 Decisions
 
-Fixed answers to the open questions in `ramp-project-implementation-phases.md`,
+Fixed answers to the open questions in `ramp-project-implementation-phases.md` (in this same `docs/` folder),
 so later phases build against a stable target.
 
 ## Architecture / stack

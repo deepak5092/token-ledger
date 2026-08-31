@@ -7,7 +7,7 @@ spend. A synthetic AWS Bedrock connector demonstrates extending the
 pattern to a provider not covered by the inspiration for this project
 (Ramp's AI Token Spend Management).
 
-See [`ramp-project-implementation-phases.md`](./ramp-project-implementation-phases.md)
+See [`docs/ramp-project-implementation-phases.md`](./docs/ramp-project-implementation-phases.md)
 for the full phased build plan and [`docs/architecture.md`](./docs/architecture.md)
 for the fixed Phase 0 decisions this build follows.
 
@@ -27,10 +27,20 @@ use) for the agent features.
      Settings → API page.
    - `ANTHROPIC_API_KEY` from console.anthropic.com — this powers the
      agent features server-side; end users never provide this.
-4. Run `supabase/schema.sql` in the Supabase SQL editor to create the
-   tables and RLS policies.
+4. Run `supabase/schema.sql`, then `supabase/vault_functions.sql`, in the
+   Supabase SQL editor — the tables/RLS policies and the Vault wrapper
+   functions used to encrypt connected provider keys.
 5. `npm run dev` and visit `/api/health` to confirm the app can reach
    Supabase.
+
+## Connecting a provider
+
+`/dashboard/connections` lets a signed-in user add a provider key. Anthropic
+and OpenAI both require an **org/Admin-level API key** for usage-reporting
+access, not a regular per-project key — the connect form validates against
+each provider's usage endpoint and will reject a regular key with a message
+saying so. The Bedrock connector needs no real key; it's flagged for
+generating synthetic data in Phase 4.
 
 ## Deploy
 

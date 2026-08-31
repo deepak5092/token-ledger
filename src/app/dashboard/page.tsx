@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "./actions";
 
@@ -25,8 +26,14 @@ export default async function DashboardPage() {
       <p className="mt-4 text-zinc-600 dark:text-zinc-400">
         Signed in as {user?.email}
       </p>
+      <Link
+        href="/dashboard/connections"
+        className="mt-4 inline-block text-sm font-medium underline"
+      >
+        Manage connections
+      </Link>
       <p className="mt-8 text-sm text-zinc-500">
-        Connections, usage charts, and everything else land in later phases.
+        Usage charts and everything else land in later phases.
       </p>
     </div>
   );
