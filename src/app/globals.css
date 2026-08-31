@@ -19,6 +19,9 @@
   --chart-series-6: #008300;
   --chart-series-7: #4a3aa7;
   --chart-series-8: #e34948;
+
+  /* Status colors: fixed, never themed by light/dark. */
+  --status-critical: #d03b3b;
 }
 
 @theme inline {

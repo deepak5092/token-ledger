@@ -71,6 +71,7 @@ export function SpendByProviderChart({
             fill={PROVIDER_COLOR[p] ?? "var(--chart-series-8)"}
             name={p}
             radius={providers.indexOf(p) === providers.length - 1 ? [3, 3, 0, 0] : undefined}
+            isAnimationActive={false}
           />
         ))}
       </BarChart>

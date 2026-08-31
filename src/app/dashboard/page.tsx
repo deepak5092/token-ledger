@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "./actions";
 import { SummaryCards } from "./SummaryCards";
+import { AnomalyAlerts } from "./AnomalyAlerts";
 import { SpendOverTimeChart } from "./charts/SpendOverTimeChart";
 import { SpendByModelChart } from "./charts/SpendByModelChart";
 import { SpendByProviderChart } from "./charts/SpendByProviderChart";
@@ -12,6 +13,7 @@ import {
   weeklySpendByProvider,
   type UsageRow,
 } from "@/lib/dashboard/aggregate";
+import { detectAnomalies } from "@/lib/dashboard/anomaly";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -30,6 +32,7 @@ export default async function DashboardPage() {
   const rows = usageRows ?? [];
   const hasConnections = (connections?.length ?? 0) > 0;
   const hasUsage = rows.length > 0;
+  const spendWithAnomalies = detectAnomalies(dailySpend(rows));
 
   return (
     <div className="min-h-screen bg-zinc-50 p-8 dark:bg-black">
@@ -89,7 +92,16 @@ export default async function DashboardPage() {
               Spend over time
             </h2>
             <div className="mt-2 rounded border border-zinc-200 p-4 dark:border-zinc-800">
-              <SpendOverTimeChart data={dailySpend(rows)} />
+              <SpendOverTimeChart data={spendWithAnomalies} />
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Anomalies
+            </h2>
+            <div className="mt-2">
+              <AnomalyAlerts points={spendWithAnomalies} />
             </div>
           </section>
 

@@ -44,7 +44,13 @@ export function SpendByModelChart({ data }: { data: ModelSpendPoint[] }) {
           }}
           labelStyle={{ color: "var(--chart-ink-secondary)" }}
         />
-        <Bar dataKey="cost" fill="var(--chart-sequential)" radius={[0, 4, 4, 0]} maxBarSize={20} />
+        <Bar
+          dataKey="cost"
+          fill="var(--chart-sequential)"
+          radius={[0, 4, 4, 0]}
+          maxBarSize={20}
+          isAnimationActive={false}
+        />
       </BarChart>
     </ResponsiveContainer>
   );
