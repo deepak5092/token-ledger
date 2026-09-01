@@ -31,6 +31,19 @@ export function spendByModel(rows: UsageRow[]): ModelSpendPoint[] {
     .sort((a, b) => b.cost - a.cost);
 }
 
+export type ProviderSpendPoint = { provider: string; cost: number };
+
+export function spendByProvider(rows: UsageRow[]): ProviderSpendPoint[] {
+  const byProvider = new Map<string, number>();
+  for (const r of rows) {
+    const provider = r.api_connections?.provider ?? "unknown";
+    byProvider.set(provider, (byProvider.get(provider) ?? 0) + r.cost_usd);
+  }
+  return Array.from(byProvider.entries())
+    .map(([provider, cost]) => ({ provider, cost: round(cost) }))
+    .sort((a, b) => b.cost - a.cost);
+}
+
 function startOfIsoWeek(dateStr: string): string {
   const d = new Date(`${dateStr}T00:00:00Z`);
   const day = d.getUTCDay();

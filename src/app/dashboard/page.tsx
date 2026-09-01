@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logout } from "./actions";
 import { SummaryCards } from "./SummaryCards";
 import { AnomalyAlerts } from "./AnomalyAlerts";
+import { BriefingCard } from "./BriefingCard";
 import { SpendOverTimeChart } from "./charts/SpendOverTimeChart";
 import { SpendByModelChart } from "./charts/SpendByModelChart";
 import { SpendByProviderChart } from "./charts/SpendByProviderChart";
@@ -48,6 +49,12 @@ export default async function DashboardPage() {
           Dashboard
         </h1>
         <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard/agent"
+            className="text-sm font-medium underline"
+          >
+            Ask about your spend
+          </Link>
           <Link
             href="/dashboard/simulator"
             className="text-sm font-medium underline"
@@ -99,6 +106,8 @@ export default async function DashboardPage() {
       ) : (
         <div className="mt-8 space-y-8">
           <SummaryCards summary={computeSummary(rows)} />
+
+          <BriefingCard />
 
           <section>
             <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">

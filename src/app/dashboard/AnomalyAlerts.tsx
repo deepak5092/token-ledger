@@ -1,4 +1,8 @@
+"use client";
+
+import { useState, useTransition } from "react";
 import type { AnomalyPoint } from "@/lib/dashboard/anomaly";
+import { explainAnomaly } from "./agent/actions";
 
 const formatDate = (dateStr: string) =>
   new Date(`${dateStr}T00:00:00Z`).toLocaleDateString(undefined, {
@@ -13,6 +17,25 @@ export function AnomalyAlerts({ points }: { points: AnomalyPoint[] }) {
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 5);
 
+  const [explanations, setExplanations] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [pendingDate, setPendingDate] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+
+  const onExplain = (date: string) => {
+    setPendingDate(date);
+    setErrors((e) => ({ ...e, [date]: "" }));
+    startTransition(async () => {
+      const result = await explainAnomaly(date);
+      setPendingDate(null);
+      if (result.ok) {
+        setExplanations((e) => ({ ...e, [date]: result.text }));
+      } else {
+        setErrors((e) => ({ ...e, [date]: result.error }));
+      }
+    });
+  };
+
   if (anomalies.length === 0) {
     return (
       <p className="text-sm text-zinc-500">No spend anomalies detected.</p>
@@ -24,12 +47,34 @@ export function AnomalyAlerts({ points }: { points: AnomalyPoint[] }) {
       {anomalies.map((a) => (
         <li
           key={a.date}
-          className="flex items-center gap-2 rounded border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-950 dark:bg-red-950/40 dark:text-red-300"
+          className="rounded border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-950 dark:bg-red-950/40 dark:text-red-300"
         >
-          <span aria-hidden>⚠</span>
-          <span>
-            {formatDate(a.date)}: spend was {a.ratio}x your 7-day average
-          </span>
+          <div className="flex items-center justify-between gap-2">
+            <span>
+              <span aria-hidden>⚠</span> {formatDate(a.date)}: spend was{" "}
+              {a.ratio}x your 7-day average
+            </span>
+            <button
+              type="button"
+              onClick={() => onExplain(a.date)}
+              disabled={pendingDate === a.date}
+              className="shrink-0 rounded border border-red-300 px-2 py-1 text-xs disabled:opacity-50 dark:border-red-800"
+            >
+              {pendingDate === a.date
+                ? "Thinking…"
+                : explanations[a.date]
+                  ? "Re-explain"
+                  : "Explain"}
+            </button>
+          </div>
+          {errors[a.date] && (
+            <p className="mt-1 text-xs">{errors[a.date]}</p>
+          )}
+          {explanations[a.date] && (
+            <p className="mt-1 text-xs text-red-700 dark:text-red-300">
+              {explanations[a.date]}
+            </p>
+          )}
         </li>
       ))}
     </ul>
