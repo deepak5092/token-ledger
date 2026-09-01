@@ -7,8 +7,16 @@ export default function Home() {
         Token Ledger
       </h1>
       <p className="max-w-md text-zinc-600 dark:text-zinc-400">
-        AI token spend tracker — scaffolding in progress. Landing page,
-        public demo, and dashboard land in later phases.
+        Connect your own Anthropic or OpenAI usage data — or try a
+        synthetic AWS Bedrock dataset with no key needed — and get a
+        cached spend dashboard, forecasts, anomaly alerts, and a
+        tool-using agent that can answer questions about your spend.
+      </p>
+      <p className="max-w-md text-xs text-zinc-500">
+        This is a demo project, not a security-audited product. Provider
+        keys are encrypted via Supabase Vault and decrypted only
+        server-side — use a scoped, rotatable, low-spend key wherever
+        your provider supports one.
       </p>
       <div className="flex gap-3">
         <Link

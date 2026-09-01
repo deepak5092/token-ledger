@@ -7,6 +7,7 @@ import { generateSyntheticBedrockUsage } from "@/lib/ingestion/bedrock-synthetic
 import { fetchAnthropicUsage } from "@/lib/ingestion/anthropic";
 import { fetchOpenAIUsage } from "@/lib/ingestion/openai";
 import type { NormalizedUsageRecord } from "@/lib/ingestion/types";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function syncConnection(formData: FormData) {
   const supabase = await createClient();
@@ -16,6 +17,13 @@ export async function syncConnection(formData: FormData) {
 
   if (!user) {
     redirect("/login");
+  }
+
+  const withinLimit = await checkRateLimit(`sync:${user.id}`, RATE_LIMITS.sync);
+  if (!withinLimit) {
+    redirect(
+      `/dashboard/connections?error=${encodeURIComponent("Too many syncs in a short window. Wait a minute and try again.")}`,
+    );
   }
 
   const connectionId = formData.get("connectionId") as string;

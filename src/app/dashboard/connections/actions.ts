@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isProvider } from "@/lib/providers/types";
 import { validateProviderKey } from "@/lib/providers/validate";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function addConnection(formData: FormData) {
   const supabase = await createClient();
@@ -30,6 +31,13 @@ export async function addConnection(formData: FormData) {
   if (provider !== "bedrock_synthetic" && !apiKey) {
     redirect(
       `/dashboard/connections?error=${encodeURIComponent("API key is required for this provider.")}`,
+    );
+  }
+
+  const withinLimit = await checkRateLimit(`key-validation:${user.id}`, RATE_LIMITS.keyValidation);
+  if (!withinLimit) {
+    redirect(
+      `/dashboard/connections?error=${encodeURIComponent("Too many key-validation attempts. Wait a few minutes and try again.")}`,
     );
   }
 

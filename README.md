@@ -27,9 +27,11 @@ use) for the agent features.
      Settings → API page.
    - `ANTHROPIC_API_KEY` from console.anthropic.com — this powers the
      agent features server-side; end users never provide this.
-4. Run `supabase/schema.sql`, then `supabase/vault_functions.sql`, in the
-   Supabase SQL editor — the tables/RLS policies and the Vault wrapper
-   functions used to encrypt connected provider keys.
+4. Run `supabase/schema.sql`, then `supabase/vault_functions.sql`, then
+   `supabase/rate_limit_functions.sql`, in the Supabase SQL editor — the
+   tables/RLS policies, the Vault wrapper functions used to encrypt
+   connected provider keys, and the rate-limit counter used to cap
+   key-validation, sync, and agent requests.
 5. `npm run dev` and visit `/api/health` to confirm the app can reach
    Supabase.
 
