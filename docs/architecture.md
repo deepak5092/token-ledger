@@ -7,8 +7,12 @@ so later phases build against a stable target.
 - Next.js (App Router) handles everything except forecasting.
 - Forecasting (Phase 7) is a separate Python function using `statsmodels`
   Holt-Winters smoothing, deployed as a Vercel Python serverless function
-  (`api/forecast.py` at the repo root, alongside the Next.js app, configured
-  via `vercel.json`) — not a separately hosted service.
+  (`api/forecast.py` at the repo root, alongside the Next.js app) — not a
+  separately hosted service. Zero-config: a root `requirements.txt` plus a
+  `handler(BaseHTTPRequestHandler)` class is Vercel's documented file-based
+  Python convention, no `vercel.json` needed (an earlier one specifying
+  `functions.runtime: "python3.12"` was invalid and broke every deploy from
+  Phase 7 onward — removed).
 - Supabase is accessed two ways: RLS-scoped reads/writes from Server
   Components and Route Handlers via `@supabase/ssr` (`src/lib/supabase/server.ts`),
   and a service-role client (`src/lib/supabase/admin.ts`) for server-only
