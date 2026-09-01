@@ -4,6 +4,10 @@ import { ConnectionForm } from "./ConnectionForm";
 import { removeConnection } from "./actions";
 import { syncConnection } from "./sync-actions";
 import { SyncButton } from "./SyncButton";
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { ProviderBadge } from "@/components/dashboard/ProviderBadge";
 
 export default async function ConnectionsPage({
   searchParams,
@@ -22,10 +26,8 @@ export default async function ConnectionsPage({
     PROVIDERS.find((p) => p.value === value)?.label ?? value;
 
   return (
-    <div className="min-h-screen bg-zinc-50 p-8 dark:bg-black">
-      <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">
-        Connections
-      </h1>
+    <div>
+      <h1 className="text-2xl font-semibold text-foreground">Connections</h1>
 
       <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
         This is a demo project, not a security-audited product. Keys are
@@ -35,15 +37,15 @@ export default async function ConnectionsPage({
       </p>
 
       {error && (
-        <p className="mt-4 max-w-2xl rounded bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+        <Alert variant="error" className="mt-4 max-w-2xl">
           {error}
-        </p>
+        </Alert>
       )}
 
       {synced !== undefined && (
-        <p className="mt-4 max-w-2xl rounded bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
+        <Alert variant="success" className="mt-4 max-w-2xl">
           Synced {synced} usage record{synced === "1" ? "" : "s"}.
-        </p>
+        </Alert>
       )}
 
       <div className="mt-6 max-w-md">
@@ -53,37 +55,34 @@ export default async function ConnectionsPage({
       <div className="mt-8 max-w-2xl space-y-3">
         {connections?.length ? (
           connections.map((c) => (
-            <div
-              key={c.id}
-              className="flex items-center justify-between rounded border border-zinc-200 px-4 py-3 dark:border-zinc-800"
-            >
-              <div>
-                <p className="font-medium text-black dark:text-zinc-50">
-                  {providerLabel(c.provider)}
-                  {c.label ? ` — ${c.label}` : ""}
-                </p>
-                <p className="text-xs text-zinc-500">
-                  {c.last_synced_at
-                    ? `Last synced ${new Date(c.last_synced_at).toLocaleString()}`
-                    : "Never synced"}
-                </p>
+            <Card key={c.id} className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <ProviderBadge provider={c.provider} />
+                <div>
+                  <p className="font-medium text-foreground">
+                    {providerLabel(c.provider)}
+                    {c.label ? ` — ${c.label}` : ""}
+                  </p>
+                  <p className="text-xs text-zinc-500">
+                    {c.last_synced_at
+                      ? `Last synced ${new Date(c.last_synced_at).toLocaleString()}`
+                      : "Never synced"}
+                  </p>
+                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex shrink-0 gap-2">
                 <form action={syncConnection}>
                   <input type="hidden" name="connectionId" value={c.id} />
                   <SyncButton />
                 </form>
                 <form action={removeConnection}>
                   <input type="hidden" name="connectionId" value={c.id} />
-                  <button
-                    type="submit"
-                    className="rounded border border-zinc-300 px-3 py-1.5 text-sm text-red-700 dark:border-zinc-700 dark:text-red-400"
-                  >
+                  <Button type="submit" variant="destructive" size="sm">
                     Remove
-                  </button>
+                  </Button>
                 </form>
               </div>
-            </div>
+            </Card>
           ))
         ) : (
           <p className="text-sm text-zinc-500">No connections yet.</p>

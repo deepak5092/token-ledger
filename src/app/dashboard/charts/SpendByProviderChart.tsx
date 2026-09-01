@@ -2,23 +2,10 @@
 
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { ProviderWeekPoint } from "@/lib/dashboard/aggregate";
+import { PROVIDER_COLOR, PROVIDER_LABEL } from "@/lib/providers/colors";
 
 const currency = (n: number) =>
   n.toLocaleString(undefined, { style: "currency", currency: "USD" });
-
-// Fixed hue-per-provider so a color never shifts meaning as connections are
-// added/removed — never assign categorical color by array index.
-const PROVIDER_COLOR: Record<string, string> = {
-  anthropic: "var(--chart-series-1)",
-  openai: "var(--chart-series-2)",
-  bedrock_synthetic: "var(--chart-series-3)",
-};
-
-const PROVIDER_LABEL: Record<string, string> = {
-  anthropic: "Anthropic",
-  openai: "OpenAI",
-  bedrock_synthetic: "Bedrock (synthetic)",
-};
 
 export function SpendByProviderChart({
   data,

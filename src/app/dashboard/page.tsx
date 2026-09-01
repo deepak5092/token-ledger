@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { logout } from "./actions";
 import { SummaryCards } from "./SummaryCards";
 import { AnomalyAlerts } from "./AnomalyAlerts";
 import { BriefingCard } from "./BriefingCard";
 import { SpendOverTimeChart } from "./charts/SpendOverTimeChart";
 import { SpendByModelChart } from "./charts/SpendByModelChart";
 import { SpendByProviderChart } from "./charts/SpendByProviderChart";
+import { Card } from "@/components/ui/Card";
+import { buttonVariants } from "@/components/ui/Button";
 import {
   computeSummary,
   dailySpend,
@@ -20,9 +21,6 @@ import { fetchForecast } from "@/lib/forecast/client";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const { data: connections } = await supabase.from("api_connections").select("id");
 
@@ -43,68 +41,27 @@ export default async function DashboardPage() {
   const chartData = mergeForecast(spendWithAnomalies, forecast);
 
   return (
-    <div className="min-h-screen bg-zinc-50 p-8 dark:bg-black">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">
-          Dashboard
-        </h1>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/dashboard/agent"
-            className="text-sm font-medium underline"
-          >
-            Ask about your spend
-          </Link>
-          <Link
-            href="/dashboard/simulator"
-            className="text-sm font-medium underline"
-          >
-            Savings simulator
-          </Link>
-          <Link
-            href="/dashboard/connections"
-            className="text-sm font-medium underline"
-          >
-            Manage connections
-          </Link>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
-            >
-              Log out
-            </button>
-          </form>
-        </div>
-      </div>
-      <p className="mt-1 text-sm text-zinc-500">Signed in as {user?.email}</p>
+    <div>
+      <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
 
       {!hasConnections ? (
-        <div className="mt-12 max-w-md rounded border border-zinc-200 p-6 text-center dark:border-zinc-800">
-          <p className="text-zinc-700 dark:text-zinc-300">
-            No provider connections yet.
-          </p>
-          <Link
-            href="/dashboard/connections"
-            className="mt-3 inline-block rounded bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black"
-          >
+        <Card className="mt-8 max-w-md text-center">
+          <p className="text-zinc-700 dark:text-zinc-300">No provider connections yet.</p>
+          <Link href="/dashboard/connections" className={buttonVariants({ className: "mt-3" })}>
             Connect a provider
           </Link>
-        </div>
+        </Card>
       ) : !hasUsage ? (
-        <div className="mt-12 max-w-md rounded border border-zinc-200 p-6 text-center dark:border-zinc-800">
+        <Card className="mt-8 max-w-md text-center">
           <p className="text-zinc-700 dark:text-zinc-300">
             No usage data yet — sync a connection to populate your dashboard.
           </p>
-          <Link
-            href="/dashboard/connections"
-            className="mt-3 inline-block rounded bg-black px-4 py-2 text-sm text-white dark:bg-white dark:text-black"
-          >
+          <Link href="/dashboard/connections" className={buttonVariants({ className: "mt-3" })}>
             Go sync a connection
           </Link>
-        </div>
+        </Card>
       ) : (
-        <div className="mt-8 space-y-8">
+        <div className="mt-6 space-y-8">
           <SummaryCards summary={computeSummary(rows)} />
 
           <BriefingCard />
@@ -118,15 +75,13 @@ export default async function DashboardPage() {
                 </span>
               )}
             </h2>
-            <div className="mt-2 rounded border border-zinc-200 p-4 dark:border-zinc-800">
+            <Card className="mt-2">
               <SpendOverTimeChart data={chartData} />
-            </div>
+            </Card>
           </section>
 
           <section>
-            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Anomalies
-            </h2>
+            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Anomalies</h2>
             <div className="mt-2">
               <AnomalyAlerts points={spendWithAnomalies} />
             </div>
@@ -137,21 +92,21 @@ export default async function DashboardPage() {
               <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Spend by model
               </h2>
-              <div className="mt-2 rounded border border-zinc-200 p-4 dark:border-zinc-800">
+              <Card className="mt-2">
                 <SpendByModelChart data={spendByModel(rows)} />
-              </div>
+              </Card>
             </section>
 
             <section>
               <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Spend by provider
               </h2>
-              <div className="mt-2 rounded border border-zinc-200 p-4 dark:border-zinc-800">
+              <Card className="mt-2">
                 {(() => {
                   const { data, providers } = weeklySpendByProvider(rows);
                   return <SpendByProviderChart data={data} providers={providers} />;
                 })()}
-              </div>
+              </Card>
             </section>
           </div>
         </div>

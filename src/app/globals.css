@@ -4,6 +4,14 @@
   --background: #ffffff;
   --foreground: #171717;
 
+  /* Brand accent — validated via the dataviz skill's validate_palette.js
+     against every --chart-series-* value (both modes) so it never reads as
+     a confusable extra data series: normal-vision ΔE and CVD separation
+     both pass against the full chart palette. */
+  --accent: #334155;
+  --accent-hover: #1e293b;
+  --accent-foreground: #ffffff;
+
   /* Chart tokens (dataviz skill reference palette) */
   --chart-surface: #fcfcfb;
   --chart-grid: #e1e0d9;
@@ -27,6 +35,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -35,6 +46,12 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    /* Lighter slate for dark mode — validated the same way; needs a dark
+       foreground since it's too light for white text to sit on. */
+    --accent: #94a3b8;
+    --accent-hover: #cbd5e1;
+    --accent-foreground: #0a0a0a;
 
     --chart-surface: #1a1a19;
     --chart-grid: #2c2c2a;
@@ -56,5 +73,4 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

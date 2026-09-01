@@ -1,8 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { PRICING_TABLE, estimateCost } from "@/lib/pricing/models";
 import type { Workload } from "@/lib/dashboard/simulator";
+import { Button } from "@/components/ui/Button";
+import { Label, Select, Input } from "@/components/ui/Field";
+import { Card } from "@/components/ui/Card";
 
 const currency = (n: number) =>
   n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -50,52 +54,47 @@ export function SimulatorForm({ workloads }: { workloads: Workload[] }) {
       : null;
 
   const targetLabel = PRICING_TABLE.find((p) => p.model === targetModel)?.label ?? targetModel;
+  const DeltaIcon = delta === null || delta === 0 ? Minus : delta > 0 ? TrendingDown : TrendingUp;
 
   return (
     <div className="space-y-6">
       <div className="flex gap-2 text-sm">
-        <button
+        <Button
           type="button"
+          variant={mode === "usage" ? "primary" : "outline"}
+          size="sm"
           onClick={() => setMode("usage")}
           disabled={!workloads.length}
-          className={`rounded px-3 py-1.5 ${
-            mode === "usage"
-              ? "bg-black text-white dark:bg-white dark:text-black"
-              : "border border-zinc-300 text-zinc-700 disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-300"
-          }`}
         >
           From my usage
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant={mode === "manual" ? "primary" : "outline"}
+          size="sm"
           onClick={() => setMode("manual")}
-          className={`rounded px-3 py-1.5 ${
-            mode === "manual"
-              ? "bg-black text-white dark:bg-white dark:text-black"
-              : "border border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
-          }`}
         >
           Manual entry
-        </button>
+        </Button>
       </div>
 
       {mode === "usage" ? (
         workloads.length ? (
           <div className="max-w-md">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <Label htmlFor="workload">
               Workload (scaled to a 30-day month from your synced data)
-            </label>
-            <select
+            </Label>
+            <Select
+              id="workload"
               value={selectedModel}
               onChange={(e) => setSelectedModel(e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             >
               {workloads.map((w) => (
                 <option key={w.model} value={w.model}>
                   {truncate(w.model)} — {currency(w.monthlyCost)}/mo
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         ) : (
           <p className="text-sm text-zinc-500">No synced usage yet — use manual entry instead.</p>
@@ -103,66 +102,54 @@ export function SimulatorForm({ workloads }: { workloads: Workload[] }) {
       ) : (
         <div className="grid max-w-md grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Current model
-            </label>
-            <select
+            <Label htmlFor="manualModel">Current model</Label>
+            <Select
+              id="manualModel"
               value={manualModel}
               onChange={(e) => setManualModel(e.target.value)}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             >
               {PRICING_TABLE.map((p) => (
                 <option key={p.model} value={p.model}>
                   {p.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Input tokens / month
-            </label>
-            <input
+            <Label htmlFor="manualInput">Input tokens / month</Label>
+            <Input
+              id="manualInput"
               type="number"
               min={0}
               value={manualInput}
               onChange={(e) => setManualInput(Number(e.target.value) || 0)}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Output tokens / month
-            </label>
-            <input
+            <Label htmlFor="manualOutput">Output tokens / month</Label>
+            <Input
+              id="manualOutput"
               type="number"
               min={0}
               value={manualOutput}
               onChange={(e) => setManualOutput(Number(e.target.value) || 0)}
-              className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
             />
           </div>
         </div>
       )}
 
       <div className="max-w-md">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Switch to
-        </label>
-        <select
-          value={targetModel}
-          onChange={(e) => setTargetModel(e.target.value)}
-          className="mt-1 w-full rounded border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-        >
+        <Label htmlFor="targetModel">Switch to</Label>
+        <Select id="targetModel" value={targetModel} onChange={(e) => setTargetModel(e.target.value)}>
           {PRICING_TABLE.map((p) => (
             <option key={p.model} value={p.model}>
               {p.label}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
-      <div className="max-w-md rounded border border-zinc-200 p-6 dark:border-zinc-800">
+      <Card className="max-w-md">
         {currentCost === null ? (
           <p className="text-sm text-zinc-500">
             No pricing data for {truncate(currentModel)} — can&apos;t estimate a comparison.
@@ -178,14 +165,15 @@ export function SimulatorForm({ workloads }: { workloads: Workload[] }) {
               {targetLabel}
             </p>
             <p
-              className={`mt-1 text-2xl font-semibold ${
+              className={`mt-1 flex items-center gap-2 text-2xl font-semibold ${
                 delta !== null && delta > 0
                   ? "text-green-600 dark:text-green-400"
                   : delta !== null && delta < 0
                     ? "text-red-600 dark:text-red-400"
-                    : "text-black dark:text-zinc-50"
+                    : "text-foreground"
               }`}
             >
+              <DeltaIcon className="h-5 w-5 shrink-0" aria-hidden />
               {delta === null
                 ? "—"
                 : delta > 0
@@ -194,14 +182,14 @@ export function SimulatorForm({ workloads }: { workloads: Workload[] }) {
                     ? `Costs ${currency(Math.abs(delta))}/mo more`
                     : "No change"}
               {pctChange !== null && delta !== 0 && (
-                <span className="ml-2 text-base font-normal text-zinc-400">
+                <span className="text-base font-normal text-zinc-400">
                   ({Math.abs(pctChange)}%)
                 </span>
               )}
             </p>
           </>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
