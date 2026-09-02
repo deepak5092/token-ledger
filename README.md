@@ -63,10 +63,13 @@ that are never imported by the app's real connect-a-provider flow, only
 by `scripts/seed-demo-account.ts`. Safe to re-run: it reuses the existing
 user/connections and upserts usage records instead of duplicating them.
 
-Current demo login: `demo@tokenledger.example` / `TokenLedgerDemo2026!`
-(also shown on the landing page). It's a real Supabase Auth account with
-only synthetic data behind it, so there's no real credential or spend
-exposure if someone else finds the link.
+Credentials are set at the top of `scripts/seed-demo-account.ts` and
+deliberately **not** published here or on the landing page: the demo
+account's agent features (briefing/chat/anomaly-explain) call the
+developer's own `ANTHROPIC_API_KEY`, so a publicly-known login is a real
+cost risk, not just a data-tampering one, even with rate limiting in
+place. Share the credentials directly with whoever should have demo
+access instead of posting them anywhere public.
 
 ## Deploy
 
