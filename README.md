@@ -52,6 +52,22 @@ against a live Admin key; if a real sync ever fails or looks wrong, the
 thrown error includes the raw response body to make the field-mapping fix
 easy.
 
+## Demo account
+
+`npm run seed:demo` creates (or reuses) a shared demo account and seeds it
+with synthetic Anthropic, OpenAI, and Bedrock usage, so a visitor can sign
+in without connecting a real key. It's the same synthetic-data machinery
+Bedrock connections use in production (`src/lib/ingestion/synthetic.ts`),
+plus two demo-only generators (`anthropic-synthetic.ts`, `openai-synthetic.ts`)
+that are never imported by the app's real connect-a-provider flow, only
+by `scripts/seed-demo-account.ts`. Safe to re-run: it reuses the existing
+user/connections and upserts usage records instead of duplicating them.
+
+Current demo login: `demo@tokenledger.example` / `TokenLedgerDemo2026!`
+(also shown on the landing page). It's a real Supabase Auth account with
+only synthetic data behind it, so there's no real credential or spend
+exposure if someone else finds the link.
+
 ## Deploy
 
 Push to GitHub, import the repo in Vercel, and mirror the same
