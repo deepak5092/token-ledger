@@ -1,7 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-import { runAgentLoopStream } from "@/lib/agent/claude";
-import { briefingPrompt, anomalyPrompt, chatPrompt, type ChatMessage } from "@/lib/agent/prompts";
+import { runAgentLoopStream, AgentUnavailableError } from "@/lib/agent/claude";
+import {
+  briefingPrompt,
+  anomalyPrompt,
+  chatPrompt,
+  isObviouslyOffTopic,
+  OFF_TOPIC_REPLY,
+  type ChatMessage,
+} from "@/lib/agent/prompts";
+
+const FALLBACK_MESSAGE =
+  "I'm having trouble reaching the model right now, please try again in a moment.";
 
 type AgentRequest =
   | { mode: "chat"; question: string; history: ChatMessage[] }
@@ -41,11 +51,18 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  let prompt: { system: string; messages: Parameters<typeof runAgentLoopStream>[2] };
+  let prompt: { system: string; messages: Parameters<typeof runAgentLoopStream>[2] } | null = null;
   if (body.mode === "chat") {
     const question = body.question?.trim();
     if (!question) return Response.json({ error: "Ask a question first." }, { status: 400 });
-    prompt = chatPrompt(question, body.history ?? []);
+    // Skip the tool-use loop (and the model call) entirely for questions
+    // that are unambiguously unrelated to spend/usage; SCOPE_GUARD in the
+    // system prompt is what actually enforces scope for everything else.
+    if (isObviouslyOffTopic(question)) {
+      prompt = null;
+    } else {
+      prompt = chatPrompt(question, body.history ?? []);
+    }
   } else if (body.mode === "briefing") {
     prompt = briefingPrompt();
   } else if (body.mode === "anomaly") {
@@ -60,16 +77,26 @@ export async function POST(req: Request) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
+      if (!prompt) {
+        controller.enqueue(encoder.encode(sse({ type: "text", text: OFF_TOPIC_REPLY })));
+        controller.close();
+        return;
+      }
       try {
         for await (const chunk of runAgentLoopStream(supabase, prompt.system, prompt.messages)) {
           controller.enqueue(encoder.encode(sse({ type: "text", text: chunk })));
         }
       } catch (err) {
+        // AgentUnavailableError's message is already safe to show verbatim;
+        // anything else is logged here and never forwarded to the client,
+        // since it could be a raw Anthropic.APIError (request_id, error
+        // type) or another exception carrying implementation detail.
+        console.error("[agent] request failed:", err);
         controller.enqueue(
           encoder.encode(
             sse({
               type: "error",
-              message: err instanceof Error ? err.message : "The agent failed to respond.",
+              message: err instanceof AgentUnavailableError ? err.message : FALLBACK_MESSAGE,
             }),
           ),
         );

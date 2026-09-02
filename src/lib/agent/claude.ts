@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic, { APIError } from "@anthropic-ai/sdk";
 import { AGENT_TOOLS, executeAgentTool, type SupabaseServerClient } from "./tools";
 
 // Server-only: every agent call is billed to the developer's own
@@ -7,10 +7,29 @@ import { AGENT_TOOLS, executeAgentTool, type SupabaseServerClient } from "./tool
 const MODEL = "claude-opus-5";
 const MAX_TOOL_ROUNDS = 6;
 
+// overloaded_error and rate_limit_error are transient; everything else
+// (bad request, auth, a genuinely too-large prompt) won't succeed on retry.
+const RETRYABLE_ERROR_TYPES = new Set(["overloaded_error", "rate_limit_error"]);
+const MAX_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 1000;
+
+// Thrown only with a message that's already safe to show verbatim in the
+// chat UI — never wrap a raw APIError in this, since its .message
+// is the raw API error body (see error.ts's makeMessage).
+export class AgentUnavailableError extends Error {}
+
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
   if (!client) client = new Anthropic();
   return client;
+}
+
+function isRetryableApiError(err: unknown): err is APIError {
+  return err instanceof APIError && !!err.type && RETRYABLE_ERROR_TYPES.has(err.type);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Standard tool-use loop, streamed: send the prompt + tools, yield text
@@ -27,25 +46,55 @@ export async function* runAgentLoopStream(
   const conversation: Anthropic.MessageParam[] = [...messages];
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const stream = anthropic.messages.stream({
-      model: MODEL,
-      max_tokens: 4096,
-      system,
-      thinking: { type: "adaptive" },
-      output_config: { effort: "low" },
-      tools: AGENT_TOOLS,
-      messages: conversation,
-    });
-
+    let response: Anthropic.Message | undefined;
     let roundHadText = false;
-    for await (const event of stream) {
-      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-        roundHadText = true;
-        yield event.delta.text;
+
+    for (let attempt = 1; ; attempt++) {
+      try {
+        const stream = anthropic.messages.stream({
+          model: MODEL,
+          max_tokens: 4096,
+          system,
+          thinking: { type: "adaptive" },
+          output_config: { effort: "low" },
+          tools: AGENT_TOOLS,
+          messages: conversation,
+        });
+
+        for await (const event of stream) {
+          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+            roundHadText = true;
+            yield event.delta.text;
+          }
+        }
+
+        response = await stream.finalMessage();
+        break;
+      } catch (err) {
+        // Full detail server-side only: request_id, error type, status. The
+        // client only ever sees AgentUnavailableError's fixed message (see
+        // route.ts's catch), so nothing here reaches the end user.
+        console.error("[agent] Anthropic API call failed", {
+          attempt,
+          round,
+          type: err instanceof APIError ? err.type : undefined,
+          status: err instanceof APIError ? err.status : undefined,
+          requestID: err instanceof APIError ? err.requestID : undefined,
+          err,
+        });
+
+        // Once we've already streamed partial text to the client for this
+        // round, we can't retry cleanly without duplicating output, so a
+        // later failure just surfaces the fallback instead of retrying.
+        if (roundHadText || attempt >= MAX_ATTEMPTS || !isRetryableApiError(err)) {
+          throw new AgentUnavailableError(
+            "I'm having trouble reaching the model right now, please try again in a moment.",
+          );
+        }
+
+        await sleep(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1));
       }
     }
-
-    const response = await stream.finalMessage();
 
     if (response.stop_reason !== "tool_use") {
       return;
