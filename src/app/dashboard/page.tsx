@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { SummaryCards } from "./SummaryCards";
 import { AnomalyAlerts } from "./AnomalyAlerts";
 import { BriefingCard } from "./BriefingCard";
-import { SpendOverTimeChart } from "./charts/SpendOverTimeChart";
+import { ForecastedSpendChart } from "./ForecastedSpendChart";
 import { SpendByModelChart } from "./charts/SpendByModelChart";
 import { SpendByProviderChart } from "./charts/SpendByProviderChart";
 import { Card } from "@/components/ui/Card";
@@ -16,8 +17,6 @@ import {
   type UsageRow,
 } from "@/lib/dashboard/aggregate";
 import { detectAnomalies } from "@/lib/dashboard/anomaly";
-import { mergeForecast } from "@/lib/dashboard/forecast-chart";
-import { fetchForecast } from "@/lib/forecast/client";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -35,10 +34,6 @@ export default async function DashboardPage() {
   const hasUsage = rows.length > 0;
   const daily = dailySpend(rows);
   const spendWithAnomalies = detectAnomalies(daily);
-  const forecast = hasUsage
-    ? await fetchForecast(daily.map(({ date, cost }) => ({ date, cost })))
-    : null;
-  const chartData = mergeForecast(spendWithAnomalies, forecast);
 
   return (
     <div>
@@ -67,17 +62,18 @@ export default async function DashboardPage() {
           <BriefingCard />
 
           <section>
-            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Spend over time
-              {!forecast && (
-                <span className="ml-2 text-xs font-normal text-zinc-400">
-                  (forecast unavailable)
-                </span>
-              )}
-            </h2>
-            <Card className="mt-2">
-              <SpendOverTimeChart data={chartData} />
-            </Card>
+            <Suspense
+              fallback={
+                <>
+                  <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Spend over time
+                  </h2>
+                  <Card className="mt-2 h-[260px] animate-pulse bg-zinc-100 dark:bg-zinc-900" />
+                </>
+              }
+            >
+              <ForecastedSpendChart spendWithAnomalies={spendWithAnomalies} />
+            </Suspense>
           </section>
 
           <section>
