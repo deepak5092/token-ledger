@@ -17,7 +17,7 @@ async function fetchUsage(
 ): Promise<UsageRow[]> {
   let query = supabase
     .from("usage_records")
-    .select("date, model, cost_usd, api_connections(provider)")
+    .select("date, model, cost_usd, input_tokens, output_tokens, api_connections(provider)")
     .order("date", { ascending: true });
   if (startDate) query = query.gte("date", startDate);
   if (endDate) query = query.lte("date", endDate);

@@ -2,6 +2,8 @@ export type UsageRow = {
   date: string;
   model: string;
   cost_usd: number;
+  input_tokens: number;
+  output_tokens: number;
   api_connections: { provider: string } | null;
 };
 
@@ -86,7 +88,15 @@ export type SummaryStats = {
   totalPreviousPeriod: number;
   pctChange: number | null;
   mostExpensiveModel: string | null;
+  totalTokens: number;
+  tokensPctChange: number | null;
+  avgCostPerDay: number;
 };
+
+function pctChangeOf(current: number, previous: number): number | null {
+  if (previous <= 0) return null;
+  return Math.round(((current - previous) / previous) * 1000) / 10;
+}
 
 export function computeSummary(rows: UsageRow[], periodDays = 30): SummaryStats {
   const today = new Date();
@@ -97,27 +107,34 @@ export function computeSummary(rows: UsageRow[], periodDays = 30): SummaryStats 
 
   let totalThisPeriod = 0;
   let totalPreviousPeriod = 0;
+  let tokensThisPeriod = 0;
+  let tokensPreviousPeriod = 0;
 
   for (const r of rows) {
     const d = new Date(`${r.date}T00:00:00Z`);
+    const tokens = (r.input_tokens ?? 0) + (r.output_tokens ?? 0);
     if (d >= cutoff) {
       totalThisPeriod += r.cost_usd;
+      tokensThisPeriod += tokens;
     } else if (d >= prevCutoff) {
       totalPreviousPeriod += r.cost_usd;
+      tokensPreviousPeriod += tokens;
     }
   }
 
-  const pctChange =
-    totalPreviousPeriod > 0
-      ? ((totalThisPeriod - totalPreviousPeriod) / totalPreviousPeriod) * 100
-      : null;
-
+  const pctChange = pctChangeOf(totalThisPeriod, totalPreviousPeriod);
   const modelTotals = spendByModel(rows);
 
   return {
     totalThisPeriod: Math.round(totalThisPeriod * 100) / 100,
     totalPreviousPeriod: Math.round(totalPreviousPeriod * 100) / 100,
-    pctChange: pctChange !== null ? Math.round(pctChange * 10) / 10 : null,
+    pctChange,
     mostExpensiveModel: modelTotals[0]?.model ?? null,
+    totalTokens: tokensThisPeriod,
+    tokensPctChange: pctChangeOf(tokensThisPeriod, tokensPreviousPeriod),
+    // Same numerator/denominator ratio as pctChange (both totals divided by
+    // the same periodDays), so it shares that delta rather than computing
+    // its own.
+    avgCostPerDay: Math.round((totalThisPeriod / periodDays) * 100) / 100,
   };
 }

@@ -25,7 +25,7 @@ export default async function DashboardPage() {
 
   const { data: usageRows } = await supabase
     .from("usage_records")
-    .select("date, model, cost_usd, api_connections(provider)")
+    .select("date, model, cost_usd, input_tokens, output_tokens, api_connections(provider)")
     .order("date", { ascending: true })
     .returns<UsageRow[]>();
 
