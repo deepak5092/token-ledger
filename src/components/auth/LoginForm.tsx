@@ -32,17 +32,15 @@ export function LoginForm({
           <Input id="login-email" name="email" type="email" required />
         </div>
         <div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="login-password">Password</Label>
-            <button
-              type="button"
-              onClick={openForgot}
-              className="text-xs font-medium text-zinc-500 underline hover:text-foreground"
-            >
-              Forgot password?
-            </button>
-          </div>
+          <Label htmlFor="login-password">Password</Label>
           <Input id="login-password" name="password" type="password" required minLength={6} />
+          <button
+            type="button"
+            onClick={openForgot}
+            className="mt-1.5 text-xs font-medium text-zinc-500 underline hover:text-foreground"
+          >
+            Forgot password?
+          </button>
         </div>
         <AuthSubmitButton idleLabel="Log in" pendingLabel="Logging in…" />
       </form>
