@@ -8,14 +8,13 @@ export function Hero() {
       <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
         <div>
           <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            See every token.
-            <br className="hidden sm:block" />
-            Control every dollar.
+            Where did your AI budget actually go?
           </h1>
           <p className="mt-4 max-w-md text-lg text-zinc-600 dark:text-zinc-400">
-            Connect your Anthropic, OpenAI, or AWS Bedrock usage and get a
-            cached spend dashboard, forecasts, anomaly alerts, and a
-            tool-using agent that can answer questions about your bill.
+            Token Ledger pulls real usage from Anthropic, OpenAI, and AWS
+            Bedrock into one cached dashboard, forecasts what&apos;s next,
+            flags the days that break the pattern, and lets an agent explain
+            any of it back to you in plain language.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/signup" className={buttonVariants({ size: "lg" })}>

@@ -4,33 +4,33 @@ import { Card } from "@/components/ui/Card";
 const FEATURES = [
   {
     icon: Plug,
-    title: "Multi-provider tracking",
+    title: "Connect real usage",
     description:
-      "Connect Anthropic and OpenAI usage-reporting keys, or add a synthetic AWS Bedrock connection to try it with no key at all.",
+      "Anthropic and OpenAI usage-reporting keys, or a synthetic Bedrock feed if you'd rather not paste a key at all.",
   },
   {
     icon: TrendingUp,
-    title: "Forecasting",
+    title: "See what's coming",
     description:
-      "A Holt-Winters model projects the next 7–30 days of spend, with a confidence band, right on your spend chart.",
+      "A Holt-Winters model projects the next stretch of spend with a confidence band, layered right onto your history.",
   },
   {
     icon: AlertTriangle,
-    title: "Anomaly detection",
+    title: "Catch the weird days",
     description:
-      "Days where spend jumps well past your rolling average get flagged automatically, and you can ask the agent why.",
+      "Any day that jumps well past your rolling average gets flagged on its own, and you can ask the agent to dig into why.",
   },
   {
     icon: Calculator,
-    title: "Savings simulator",
+    title: "Run the model-switch math",
     description:
-      "Pick a real workload or enter token counts by hand, compare it against another model, and see the monthly delta.",
+      "Take a real workload or type in token counts, point it at a different model, and see the monthly difference right away.",
   },
   {
     icon: MessagesSquare,
-    title: "Ask the agent",
+    title: "Ask instead of digging",
     description:
-      "A Claude tool-use agent queries your real usage data to answer questions and generate briefings. It never guesses.",
+      "A Claude agent with real tool access answers questions about your usage data directly. It queries the data; it doesn't guess.",
   },
 ];
 
@@ -38,7 +38,7 @@ export function FeatureGrid() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
       <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-        Everything you need to track AI spend
+        What&apos;s inside
       </h2>
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f) => (
