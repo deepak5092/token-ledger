@@ -7,19 +7,34 @@
 // code, only by this script.
 //
 // Usage: npm run seed:demo
-// Safe to re-run: reuses the existing user/connections instead of
-// duplicating them, and usage_records are upserted on (connection_id, date,
-// model), so re-running just refreshes the same deterministic dataset.
+// Rotate the password on an existing demo account (e.g. after accidentally
+// exposing it somewhere public -- the agent features hit a real Anthropic
+// key, so a leaked login is a real cost risk): npm run seed:demo -- --rotate
+//
+// IMPORTANT: never hardcode a real password here. It's read from
+// DEMO_SEED_PASSWORD (set it in .env.local, which is gitignored) with a
+// random fallback so a fresh run never produces a fixed, guessable,
+// committed credential. Share whatever password this prints directly with
+// whoever should have access; don't post it anywhere public (landing page,
+// README, issues, etc.).
+//
+// Safe to re-run without --rotate: reuses the existing user/connections
+// instead of duplicating them, and usage_records are upserted on
+// (connection_id, date, model), so re-running just refreshes the same
+// deterministic dataset.
 
 import { createClient } from "@supabase/supabase-js";
+import crypto from "node:crypto";
 import { generateSyntheticBedrockUsage } from "../src/lib/ingestion/bedrock-synthetic";
 import { generateSyntheticAnthropicUsage } from "../src/lib/ingestion/anthropic-synthetic";
 import { generateSyntheticOpenAIUsage } from "../src/lib/ingestion/openai-synthetic";
 import type { NormalizedUsageRecord } from "../src/lib/ingestion/types";
 
 const DEMO_EMAIL = "demo@tokenledger.example";
-const DEMO_PASSWORD = "TokenLedgerDemo2026!";
+const DEMO_PASSWORD =
+  process.env.DEMO_SEED_PASSWORD ?? "Demo-" + crypto.randomBytes(9).toString("base64url") + "!";
 const CONNECTION_LABEL = "Demo data";
+const SHOULD_ROTATE = process.argv.includes("--rotate");
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -39,6 +54,13 @@ async function getOrCreateDemoUser(): Promise<string> {
   const existing = listData.users.find((u) => u.email === DEMO_EMAIL);
   if (existing) {
     console.log(`Demo user already exists: ${existing.id}`);
+    if (SHOULD_ROTATE) {
+      const { error } = await admin.auth.admin.updateUserById(existing.id, {
+        password: DEMO_PASSWORD,
+      });
+      if (error) throw error;
+      console.log("  password rotated");
+    }
     return existing.id;
   }
 
