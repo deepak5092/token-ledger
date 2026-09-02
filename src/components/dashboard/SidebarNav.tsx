@@ -11,8 +11,8 @@ import {
   LogOut,
   Menu,
   X,
-  PanelLeftClose,
-  PanelLeftOpen,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
@@ -124,34 +124,25 @@ export function SidebarNav({
           "lg:transition-[width] lg:duration-200",
         )}
       >
-        <div className="flex items-center justify-between gap-2">
-          <Link href="/dashboard" className={collapsed ? "px-0" : "px-1"}>
-            <Logo size={22} showWordmark={!collapsed} />
-          </Link>
-          {!collapsed && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={toggleCollapsed}
-              aria-label="Collapse sidebar"
-            >
-              <PanelLeftClose className="h-4 w-4" aria-hidden />
-            </Button>
+        {/* Fixed relative position (top-right, straddling the sidebar's
+            edge) in both states, rather than sharing a row with the logo --
+            that made it jump around awkwardly between collapsed/expanded. */}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="absolute -right-3 top-6 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-500 shadow-sm transition-colors hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:text-zinc-300"
+        >
+          {collapsed ? (
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+          ) : (
+            <ChevronLeft className="h-3.5 w-3.5" aria-hidden />
           )}
-        </div>
-        {collapsed && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={toggleCollapsed}
-            aria-label="Expand sidebar"
-            className="-mt-4 w-full"
-          >
-            <PanelLeftOpen className="h-4 w-4" aria-hidden />
-          </Button>
-        )}
+        </button>
+
+        <Link href="/dashboard" className={collapsed ? "px-0" : "px-1"}>
+          <Logo size={22} showWordmark={!collapsed} />
+        </Link>
         {navLinks()}
         {footer}
       </aside>
