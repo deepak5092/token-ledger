@@ -25,11 +25,23 @@ function getStoredPreference(): ThemePreference {
   return (localStorage.getItem(STORAGE_KEY) as ThemePreference | null) ?? "system";
 }
 
-const OPTIONS: { value: ThemePreference; icon: typeof Sun; label: string }[] = [
-  { value: "light", icon: Sun, label: "Light" },
-  { value: "system", icon: Monitor, label: "System" },
-  { value: "dark", icon: Moon, label: "Dark" },
-];
+const CYCLE: Record<ThemePreference, ThemePreference> = {
+  system: "light",
+  light: "dark",
+  dark: "system",
+};
+
+const ICON: Record<ThemePreference, typeof Sun> = {
+  light: Sun,
+  system: Monitor,
+  dark: Moon,
+};
+
+const LABEL: Record<ThemePreference, string> = {
+  light: "Light",
+  system: "System",
+  dark: "Dark",
+};
 
 export function ThemeToggle({ className }: { className?: string }) {
   const [pref, setPref] = useState<ThemePreference>(getStoredPreference);
@@ -59,36 +71,23 @@ export function ThemeToggle({ className }: { className?: string }) {
   }, [pref]);
 
   if (!mounted) {
-    return <div className={cn("h-8 w-[84px]", className)} aria-hidden />;
+    return <div className={cn("h-8 w-8", className)} aria-hidden />;
   }
 
+  const Icon = ICON[pref];
+
   return (
-    <div
-      role="radiogroup"
-      aria-label="Theme"
+    <button
+      type="button"
+      onClick={() => setPref(CYCLE[pref])}
+      aria-label={`Theme: ${LABEL[pref]}. Click to switch to ${LABEL[CYCLE[pref]]}.`}
+      title={`Theme: ${LABEL[pref]}`}
       className={cn(
-        "inline-flex rounded-lg border border-zinc-300 p-0.5 dark:border-zinc-700",
+        "flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-300 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-300",
         className,
       )}
     >
-      {OPTIONS.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          role="radio"
-          aria-checked={pref === opt.value}
-          aria-label={opt.label}
-          onClick={() => setPref(opt.value)}
-          className={cn(
-            "rounded-md p-1.5 transition-colors",
-            pref === opt.value
-              ? "bg-accent text-accent-foreground"
-              : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300",
-          )}
-        >
-          <opt.icon className="h-3.5 w-3.5" aria-hidden />
-        </button>
-      ))}
-    </div>
+      <Icon className="h-4 w-4" aria-hidden />
+    </button>
   );
 }
