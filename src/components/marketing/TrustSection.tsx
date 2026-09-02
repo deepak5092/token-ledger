@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/Card";
 
 export function TrustSection() {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-12 space-y-4">
+    <section className="mx-auto max-w-6xl px-6 pb-12 space-y-4">
       <Card className="flex items-start gap-4 sm:p-6">
         <ShieldCheck className="mt-0.5 h-6 w-6 shrink-0 text-accent" aria-hidden />
         <div>
