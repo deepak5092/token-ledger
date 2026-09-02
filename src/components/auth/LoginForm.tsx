@@ -1,7 +1,7 @@
 import { login } from "@/app/login/actions";
 import { Label, Input } from "@/components/ui/Field";
-import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
+import { AuthSubmitButton } from "./AuthSubmitButton";
 
 export function LoginForm({ error, next }: { error?: string; next?: string }) {
   return (
@@ -17,9 +17,7 @@ export function LoginForm({ error, next }: { error?: string; next?: string }) {
           <Label htmlFor="login-password">Password</Label>
           <Input id="login-password" name="password" type="password" required minLength={6} />
         </div>
-        <Button type="submit" variant="primary" className="w-full">
-          Log in
-        </Button>
+        <AuthSubmitButton idleLabel="Log in" pendingLabel="Logging in…" />
       </form>
     </>
   );

@@ -3,8 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { signup } from "@/app/signup/actions";
 import { Label, Input } from "@/components/ui/Field";
-import { Button } from "@/components/ui/Button";
 import { Alert } from "@/components/ui/Alert";
+import { AuthSubmitButton } from "./AuthSubmitButton";
 
 // Kept in sync with the server-side check in app/signup/actions.ts, which is
 // the actual enforcement boundary; this copy only exists to fail fast and
@@ -72,9 +72,7 @@ export function SignupForm({ error, checkEmail }: { error?: string; checkEmail?:
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </div>
-        <Button type="submit" variant="primary" className="w-full">
-          Sign up
-        </Button>
+        <AuthSubmitButton idleLabel="Sign up" pendingLabel="Signing up…" />
       </form>
     </>
   );
