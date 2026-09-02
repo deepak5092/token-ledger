@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Bot, User, Send } from "lucide-react";
-import { askAgent, type ChatMessage } from "./actions";
+import { streamAgent, type ChatMessage } from "@/lib/agent/stream-client";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
@@ -11,26 +11,36 @@ export function ChatPanel() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
+  const [draft, setDraft] = useState("");
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const question = input.trim();
     if (!question || pending) return;
 
     setError(null);
     setInput("");
+    setDraft("");
+    setPending(true);
     const history = messages;
     setMessages([...history, { role: "user", content: question }]);
 
-    startTransition(async () => {
-      const result = await askAgent(question, history);
-      if (result.ok) {
-        setMessages((m) => [...m, { role: "assistant", content: result.text }]);
-      } else {
-        setError(result.error);
-      }
-    });
+    let text = "";
+    await streamAgent(
+      { mode: "chat", question, history },
+      {
+        onText: (chunk) => {
+          text += chunk;
+          setDraft(text);
+        },
+        onError: setError,
+      },
+    );
+
+    setPending(false);
+    setDraft("");
+    if (text) setMessages((m) => [...m, { role: "assistant", content: text }]);
   };
 
   return (
@@ -77,8 +87,15 @@ export function ChatPanel() {
             >
               <Bot className="h-3.5 w-3.5" />
             </span>
-            <div className="rounded-lg bg-zinc-100 px-3 py-2 text-sm text-zinc-500 dark:bg-zinc-900">
-              Thinking…
+            <div className="max-w-[80%] rounded-lg bg-zinc-100 px-3 py-2 text-sm whitespace-pre-wrap text-zinc-800 dark:bg-zinc-900 dark:text-zinc-200">
+              {draft ? (
+                <>
+                  {draft}
+                  <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-zinc-400 align-middle dark:bg-zinc-500" />
+                </>
+              ) : (
+                <span className="text-zinc-500">Thinking…</span>
+              )}
             </div>
           </div>
         )}

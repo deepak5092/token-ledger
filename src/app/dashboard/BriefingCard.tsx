@@ -1,26 +1,34 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Sparkles } from "lucide-react";
-import { generateBriefing } from "./agent/actions";
+import { streamAgent } from "@/lib/agent/stream-client";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
 export function BriefingCard() {
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  const onGenerate = () => {
+  const onGenerate = async () => {
     setError(null);
-    startTransition(async () => {
-      const result = await generateBriefing();
-      if (result.ok) {
-        setText(result.text);
-      } else {
-        setError(result.error);
-      }
-    });
+    setPending(true);
+    setText("");
+
+    let result = "";
+    await streamAgent(
+      { mode: "briefing" },
+      {
+        onText: (chunk) => {
+          result += chunk;
+          setText(result);
+        },
+        onError: setError,
+      },
+    );
+
+    setPending(false);
   };
 
   return (
@@ -44,9 +52,15 @@ export function BriefingCard() {
       {error && (
         <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
+      {pending && !text && (
+        <p className="mt-2 text-sm text-zinc-500">Thinking…</p>
+      )}
       {text && (
         <p className="mt-2 whitespace-pre-wrap text-sm text-zinc-700 dark:text-zinc-300">
           {text}
+          {pending && (
+            <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-zinc-400 align-middle dark:bg-zinc-500" />
+          )}
         </p>
       )}
       {!text && !error && !pending && (

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import type { AnomalyPoint } from "@/lib/dashboard/anomaly";
-import { explainAnomaly } from "./agent/actions";
+import { streamAgent } from "@/lib/agent/stream-client";
 import { Button } from "@/components/ui/Button";
 
 const formatDate = (dateStr: string) =>
@@ -22,20 +22,25 @@ export function AnomalyAlerts({ points }: { points: AnomalyPoint[] }) {
   const [explanations, setExplanations] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pendingDate, setPendingDate] = useState<string | null>(null);
-  const [, startTransition] = useTransition();
 
-  const onExplain = (date: string) => {
+  const onExplain = async (date: string) => {
     setPendingDate(date);
     setErrors((e) => ({ ...e, [date]: "" }));
-    startTransition(async () => {
-      const result = await explainAnomaly(date);
-      setPendingDate(null);
-      if (result.ok) {
-        setExplanations((e) => ({ ...e, [date]: result.text }));
-      } else {
-        setErrors((e) => ({ ...e, [date]: result.error }));
-      }
-    });
+    setExplanations((ex) => ({ ...ex, [date]: "" }));
+
+    let text = "";
+    await streamAgent(
+      { mode: "anomaly", date },
+      {
+        onText: (chunk) => {
+          text += chunk;
+          setExplanations((ex) => ({ ...ex, [date]: text }));
+        },
+        onError: (message) => setErrors((e) => ({ ...e, [date]: message })),
+      },
+    );
+
+    setPendingDate(null);
   };
 
   if (anomalies.length === 0) {
@@ -74,9 +79,15 @@ export function AnomalyAlerts({ points }: { points: AnomalyPoint[] }) {
           {errors[a.date] && (
             <p className="mt-1 text-xs">{errors[a.date]}</p>
           )}
+          {pendingDate === a.date && !explanations[a.date] && (
+            <p className="mt-1 text-xs text-red-700 dark:text-red-300">Thinking…</p>
+          )}
           {explanations[a.date] && (
             <p className="mt-1 text-xs text-red-700 dark:text-red-300">
               {explanations[a.date]}
+              {pendingDate === a.date && (
+                <span className="ml-0.5 inline-block h-3 w-1 animate-pulse bg-red-700 align-middle dark:bg-red-300" />
+              )}
             </p>
           )}
         </li>

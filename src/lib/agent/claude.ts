@@ -13,20 +13,21 @@ function getClient(): Anthropic {
   return client;
 }
 
-// Standard tool-use loop: send the prompt + tools, execute any tool_use
-// blocks the model returns, feed results back, repeat until it stops
-// calling tools and returns final text. Effort is deliberately low: this
-// is bounded lookup-then-summarize work, not long-horizon reasoning.
-export async function runAgentLoop(
+// Standard tool-use loop, streamed: send the prompt + tools, yield text
+// deltas as the model produces them, execute any tool_use blocks once a
+// round finishes, feed results back, repeat until it stops calling tools.
+// Effort is deliberately low: this is bounded lookup-then-summarize work,
+// not long-horizon reasoning.
+export async function* runAgentLoopStream(
   supabase: SupabaseServerClient,
   system: string,
   messages: Anthropic.MessageParam[],
-): Promise<string> {
+): AsyncGenerator<string> {
   const anthropic = getClient();
   const conversation: Anthropic.MessageParam[] = [...messages];
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const response = await anthropic.messages.create({
+    const stream = anthropic.messages.stream({
       model: MODEL,
       max_tokens: 4096,
       system,
@@ -36,13 +37,24 @@ export async function runAgentLoop(
       messages: conversation,
     });
 
-    if (response.stop_reason !== "tool_use") {
-      return response.content
-        .filter((block): block is Anthropic.TextBlock => block.type === "text")
-        .map((block) => block.text)
-        .join("\n")
-        .trim();
+    let roundHadText = false;
+    for await (const event of stream) {
+      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+        roundHadText = true;
+        yield event.delta.text;
+      }
     }
+
+    const response = await stream.finalMessage();
+
+    if (response.stop_reason !== "tool_use") {
+      return;
+    }
+
+    // A round can emit text (e.g. "I'll check that.") before calling a
+    // tool; separate it from the next round's text so they don't run
+    // together mid-sentence once concatenated on the client.
+    if (roundHadText) yield "\n\n";
 
     conversation.push({ role: "assistant", content: response.content });
 
@@ -73,5 +85,5 @@ export async function runAgentLoop(
     conversation.push({ role: "user", content: toolResults });
   }
 
-  return "I ran out of tool-call turns before finishing. Try a narrower question.";
+  yield "I ran out of tool-call turns before finishing. Try a narrower question.";
 }
