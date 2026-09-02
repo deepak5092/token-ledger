@@ -2,15 +2,26 @@ import type { NextConfig } from "next";
 
 // Verified against the actual app, not a generic template: no client-side
 // Supabase calls exist (all data access happens server-side in Server
-// Components/Actions, so connect-src needs nothing beyond 'self'), and the
-// one inline script in src/app/layout.tsx (the theme-init script, needed to
-// avoid a flash of the wrong theme) is allowed by exact hash rather than a
-// blanket 'unsafe-inline' -- if that script's content ever changes, this
-// hash must be recomputed (sha256, base64) or it'll be silently blocked in
-// production with no build-time error.
+// Components/Actions, so connect-src needs nothing beyond 'self').
+//
+// script-src allows 'unsafe-inline' deliberately, matching Next.js's own
+// documented no-nonce CSP pattern (see "Without Nonces" at
+// nextjs.org/docs/app/guides/content-security-policy): App Router injects
+// its own inline scripts per request to stream RSC payload data to the
+// client (the __next_f.push(...) calls), with content that differs on
+// every request, so a static hash allowlist can never match them -- an
+// earlier version of this file tried exactly that and it broke hydration
+// in production (blocked scripts -> React error #412). The alternative,
+// nonce-based CSP, requires forcing every page into dynamic rendering
+// (disables static generation/CDN caching site-wide), which is a real
+// performance cost not worth paying for this app's actual risk profile:
+// React auto-escapes all rendered content by default, and the only
+// dangerouslySetInnerHTML in the codebase is the static theme-init script
+// below, not user-controlled input -- so the practical XSS surface this
+// would additionally close is already small.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'sha256-F42ta/ZpxcGdB9ijYzFBSsK28g8VdKq2WyTuUI9tlQo='",
+  "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'", // Recharts and a few components set inline style attrs
   "img-src 'self'",
   "font-src 'self'", // next/font self-hosts Geist at build time, no external font CDN

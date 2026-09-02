@@ -20,10 +20,6 @@ export const metadata: Metadata = {
 // Runs before paint, before hydration, so the correct theme class is
 // already on <html> by the time anything renders, with no flash of the wrong
 // theme. Reads a stored preference; falls back to the OS setting.
-//
-// IMPORTANT: next.config.ts's CSP allows this exact script by SHA-256 hash
-// (not a blanket 'unsafe-inline'). Editing this string requires
-// recomputing that hash or the script gets silently blocked in production.
 const THEME_INIT_SCRIPT = `
 (function () {
   try {
