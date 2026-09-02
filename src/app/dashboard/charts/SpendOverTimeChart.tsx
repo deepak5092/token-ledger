@@ -29,7 +29,7 @@ function AnomalyDot(props: AnomalyDotProps) {
 
   if (!payload?.isAnomaly) {
     // Invisible dot: keeps Recharts' dot-per-point contract without drawing
-    // a mark on every day — only anomalies get a visible marker.
+    // a mark on every day; only anomalies get a visible marker.
     return <circle key={`dot-${index}`} cx={cx} cy={cy} r={0} />;
   }
 
@@ -67,7 +67,7 @@ function ChartTooltip({ active, payload, label }: TooltipContentProps) {
     >
       <div style={{ color: "var(--chart-ink-secondary)" }}>
         {label}
-        {point.isAnomaly ? ` — ${point.ratio}x 7-day average ⚠` : ""}
+        {point.isAnomaly ? ` (${point.ratio}x 7-day average ⚠)` : ""}
         {isForecast ? " (forecast)" : ""}
       </div>
       <div style={{ color: "var(--chart-sequential)" }}>{currency(value)}</div>

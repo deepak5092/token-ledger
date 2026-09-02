@@ -54,7 +54,7 @@ export async function fetchAnthropicUsage(
           input_tokens: inputTokens,
           output_tokens: outputTokens,
           // Anthropic's dollar cost comes from a separate Cost Report
-          // endpoint, not this one — estimate from the pricing table
+          // endpoint, not this one. Estimate from the pricing table
           // instead. Falls back to 0 for a model the table doesn't cover.
           cost_usd: estimateCost(model, inputTokens, outputTokens) ?? 0,
         });

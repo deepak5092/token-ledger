@@ -32,7 +32,7 @@ export default async function ConnectionsPage({
       <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
         This is a demo project, not a security-audited product. Keys are
         encrypted via Supabase Vault and only ever decrypted server-side at
-        sync time — never sent to your browser. Use a scoped, rotatable,
+        sync time; never sent to your browser. Use a scoped, rotatable,
         low-spend key wherever your provider supports it.
       </p>
 
@@ -61,7 +61,7 @@ export default async function ConnectionsPage({
                 <div>
                   <p className="font-medium text-foreground">
                     {providerLabel(c.provider)}
-                    {c.label ? ` — ${c.label}` : ""}
+                    {c.label ? ` (${c.label})` : ""}
                   </p>
                   <p className="text-xs text-zinc-500">
                     {c.last_synced_at

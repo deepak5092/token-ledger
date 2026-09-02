@@ -6,7 +6,7 @@ export type ForecastPoint = {
 };
 
 // Calls the Python Holt-Winters forecasting function (api/forecast.py).
-// That function only runs under Vercel's Python runtime — it is NOT served
+// That function only runs under Vercel's Python runtime; it is NOT served
 // by plain `next dev` locally, so this always fails in local development
 // and the caller must treat a null return as "forecast unavailable" rather
 // than an error.

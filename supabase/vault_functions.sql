@@ -3,7 +3,7 @@
 -- The `vault` schema isn't exposed via the Data API directly, so these
 -- SECURITY DEFINER functions expose exactly the three operations the app
 -- needs, callable via supabase.rpc(). Least privilege: any authenticated
--- user can create a secret (write-only — they get back a UUID, never the
+-- user can create a secret (write-only; they get back a UUID, never the
 -- plaintext back), but only the server (service_role key) can decrypt or
 -- delete one, and our server code enforces connection ownership via RLS
 -- before ever calling decrypt/delete.

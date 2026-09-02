@@ -4,7 +4,7 @@ export type ValidationResult = { ok: true } | { ok: false; error: string };
 
 // Validates against the actual usage-reporting endpoint rather than a cheap
 // completions call, so we catch "wrong key type" at connect-time instead of
-// at sync-time — both providers require an org/admin-level key for usage
+// at sync-time; both providers require an org/admin-level key for usage
 // data, not a regular per-project API key.
 export async function validateProviderKey(
   provider: Provider,

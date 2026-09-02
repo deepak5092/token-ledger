@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { AGENT_TOOLS, executeAgentTool, type SupabaseServerClient } from "./tools";
 
-// Server-only — every agent call is billed to the developer's own
+// Server-only: every agent call is billed to the developer's own
 // ANTHROPIC_API_KEY (per docs/architecture.md), never a value the end user
 // provides. Rate limiting these endpoints is Phase 10's job, not this file's.
 const MODEL = "claude-opus-5";
@@ -15,7 +15,7 @@ function getClient(): Anthropic {
 
 // Standard tool-use loop: send the prompt + tools, execute any tool_use
 // blocks the model returns, feed results back, repeat until it stops
-// calling tools and returns final text. Effort is deliberately low — this
+// calling tools and returns final text. Effort is deliberately low: this
 // is bounded lookup-then-summarize work, not long-horizon reasoning.
 export async function runAgentLoop(
   supabase: SupabaseServerClient,
@@ -73,5 +73,5 @@ export async function runAgentLoop(
     conversation.push({ role: "user", content: toolResults });
   }
 
-  return "I ran out of tool-call turns before finishing — try a narrower question.";
+  return "I ran out of tool-call turns before finishing. Try a narrower question.";
 }

@@ -16,7 +16,7 @@ async function requireUser(): Promise<{ supabase: SupabaseServerClient; userId: 
 }
 
 // Every agent call hits the developer's own ANTHROPIC_API_KEY, not the end
-// user's — this is the app-side backstop against runaway cost, on top of
+// user's; this is the app-side backstop against runaway cost, on top of
 // (not instead of) the spend cap set in the Anthropic console.
 async function checkAgentRateLimit(userId: string): Promise<string | null> {
   const withinLimit = await checkRateLimit(`agent:${userId}`, RATE_LIMITS.agent);
@@ -25,7 +25,8 @@ async function checkAgentRateLimit(userId: string): Promise<string | null> {
     : "You've hit the hourly limit for agent requests. Try again later.";
 }
 
-const NO_MARKDOWN = "Plain text only — no markdown headers, bold, or bullet characters.";
+const NO_MARKDOWN =
+  "Plain text only, no markdown headers, bold, or bullet characters. Never use em dashes in your response; use a comma, period, or plain hyphen instead.";
 
 export async function generateBriefing(): Promise<AgentResult> {
   const session = await requireUser();
@@ -36,7 +37,7 @@ export async function generateBriefing(): Promise<AgentResult> {
   try {
     const text = await runAgentLoop(
       session.supabase,
-      `You are Token Ledger's spend analyst. You have tools to query the signed-in user's real AI usage data — always call a tool before stating any dollar amount, token count, or model name; never estimate or invent one. Write a short spend briefing covering: total spend, the trend vs. the prior period, and the model or provider driving the bill. 3-5 sentences. ${NO_MARKDOWN}`,
+      `You are Token Ledger's spend analyst. You have tools to query the signed-in user's real AI usage data. Always call a tool before stating any dollar amount, token count, or model name; never estimate or invent one. Write a short spend briefing covering: total spend, the trend vs. the prior period, and the model or provider driving the bill. 3-5 sentences. ${NO_MARKDOWN}`,
       [{ role: "user", content: "Give me a spend briefing for the last 30 days." }],
     );
     return { ok: true, text };
@@ -77,7 +78,7 @@ export async function askAgent(question: string, history: ChatMessage[]): Promis
     const messages: ChatMessage[] = [...history.slice(-10), { role: "user", content: question }];
     const text = await runAgentLoop(
       session.supabase,
-      `You are Token Ledger's spend analyst. Answer the user's question about their own AI usage and spend using the tools — always call a tool before stating any dollar amount, token count, model name, or date; never estimate or invent one. Be concise. ${NO_MARKDOWN}`,
+      `You are Token Ledger's spend analyst. Answer the user's question about their own AI usage and spend using the tools. Always call a tool before stating any dollar amount, token count, model name, or date; never estimate or invent one. Be concise. ${NO_MARKDOWN}`,
       messages,
     );
     return { ok: true, text };

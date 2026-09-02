@@ -1,10 +1,17 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: every existing dark: utility now activates on a
+   .dark ancestor class instead of the OS media query directly. The actual
+   system-preference detection still happens (see the blocking script in
+   layout.tsx), it just applies via this class so an explicit toggle can
+   override it. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 
-  /* Brand accent — validated via the dataviz skill's validate_palette.js
+  /* Brand accent, validated via the dataviz skill's validate_palette.js
      against every --chart-series-* value (both modes) so it never reads as
      a confusable extra data series: normal-vision ΔE and CVD separation
      both pass against the full chart palette. */
@@ -42,32 +49,30 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 
-    /* Lighter slate for dark mode — validated the same way; needs a dark
-       foreground since it's too light for white text to sit on. */
-    --accent: #94a3b8;
-    --accent-hover: #cbd5e1;
-    --accent-foreground: #0a0a0a;
+  /* Lighter slate for dark mode, validated the same way; needs a dark
+     foreground since it's too light for white text to sit on. */
+  --accent: #94a3b8;
+  --accent-hover: #cbd5e1;
+  --accent-foreground: #0a0a0a;
 
-    --chart-surface: #1a1a19;
-    --chart-grid: #2c2c2a;
-    --chart-axis: #383835;
-    --chart-ink-secondary: #c3c2b7;
-    --chart-ink-muted: #898781;
-    --chart-sequential: #3987e5;
-    --chart-series-1: #3987e5;
-    --chart-series-2: #d95926;
-    --chart-series-3: #199e70;
-    --chart-series-4: #c98500;
-    --chart-series-5: #d55181;
-    --chart-series-6: #008300;
-    --chart-series-7: #9085e9;
-    --chart-series-8: #e66767;
-  }
+  --chart-surface: #1a1a19;
+  --chart-grid: #2c2c2a;
+  --chart-axis: #383835;
+  --chart-ink-secondary: #c3c2b7;
+  --chart-ink-muted: #898781;
+  --chart-sequential: #3987e5;
+  --chart-series-1: #3987e5;
+  --chart-series-2: #d95926;
+  --chart-series-3: #199e70;
+  --chart-series-4: #c98500;
+  --chart-series-5: #d55181;
+  --chart-series-6: #008300;
+  --chart-series-7: #9085e9;
+  --chart-series-8: #e66767;
 }
 
 body {

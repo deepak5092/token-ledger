@@ -18,7 +18,7 @@ const FEATURES = [
     icon: AlertTriangle,
     title: "Anomaly detection",
     description:
-      "Days where spend jumps well past your rolling average get flagged automatically — and you can ask the agent why.",
+      "Days where spend jumps well past your rolling average get flagged automatically, and you can ask the agent why.",
   },
   {
     icon: Calculator,
@@ -30,7 +30,7 @@ const FEATURES = [
     icon: MessagesSquare,
     title: "Ask the agent",
     description:
-      "A Claude tool-use agent queries your real usage data to answer questions and generate briefings — never guesses.",
+      "A Claude tool-use agent queries your real usage data to answer questions and generate briefings. It never guesses.",
   },
 ];
 

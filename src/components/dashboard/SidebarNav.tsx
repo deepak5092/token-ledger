@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/cn";
 
 const NAV_ITEMS = [
@@ -73,7 +74,8 @@ export function SidebarNav({
 
   const footer = (
     <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
-      <p className="truncate text-xs text-zinc-500" title={email}>
+      <ThemeToggle />
+      <p className="mt-3 truncate text-xs text-zinc-500" title={email}>
         {email}
       </p>
       <form action={logoutAction} className="mt-2">
@@ -101,15 +103,18 @@ export function SidebarNav({
         <Link href="/dashboard">
           <Logo size={20} />
         </Link>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setOpen(true)}
-          aria-label="Open menu"
-        >
-          <Menu className="h-5 w-5" aria-hidden />
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" aria-hidden />
+          </Button>
+        </div>
       </div>
 
       {/* Mobile: slide-over drawer */}

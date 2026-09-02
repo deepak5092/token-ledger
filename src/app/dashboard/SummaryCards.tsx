@@ -33,7 +33,7 @@ export function SummaryCards({ summary }: { summary: SummaryStats }) {
           }`}
         >
           <TrendIcon className="h-5 w-5 shrink-0" aria-hidden />
-          {pctChange === null ? "—" : `${pctChange > 0 ? "+" : ""}${pctChange}%`}
+          {pctChange === null ? "-" : `${pctChange > 0 ? "+" : ""}${pctChange}%`}
         </p>
       </Card>
       <Card>
@@ -45,7 +45,7 @@ export function SummaryCards({ summary }: { summary: SummaryStats }) {
           className="mt-1 truncate text-lg font-semibold text-foreground"
           title={mostExpensiveModel ?? undefined}
         >
-          {mostExpensiveModel ? truncate(mostExpensiveModel) : "—"}
+          {mostExpensiveModel ? truncate(mostExpensiveModel) : "-"}
         </p>
       </Card>
     </div>

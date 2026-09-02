@@ -1,4 +1,4 @@
-# AI Token Spend Tracker (Ramp-Inspired) — Implementation Phases
+# AI Token Spend Tracker (Ramp-Inspired): Implementation Phases
 
 **Goal:** A multi-tenant web app where any user can sign up, securely connect their own Anthropic/OpenAI API keys, see a dashboard of their AI token spend (cached, not fetched live on every page load), get spend forecasts, run a "switch model" savings simulator, and interact with a tool-using agent that investigates and explains their spend. A synthetic AWS Bedrock connector demonstrates extending the pattern to a provider Ramp doesn't currently support.
 
@@ -8,7 +8,7 @@
 
 ---
 
-## Phase 0 — Discovery & Planning (do this first, with Claude Code)
+## Phase 0: Discovery & Planning (do this first, with Claude Code)
 
 Before scaffolding anything, lock in these decisions so the architecture and data model don't need to change mid-build:
 
@@ -19,7 +19,7 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 **Data model**
 - Exact `usage_records` schema: which fields are mandatory (date, provider, model, input_tokens, output_tokens, cost) vs optional (project tag, request count, cache-hit tokens)?
-- How do you represent "cost" when a provider gives usage but not cost directly — store a pricing lookup table per model, updated manually, or trust the provider's own cost field when available?
+- How do you represent "cost" when a provider gives usage but not cost directly: store a pricing lookup table per model, updated manually, or trust the provider's own cost field when available?
 - One `api_connections` row per provider per user, or allow multiple keys per provider (e.g. two separate OpenAI projects)?
 
 **User flow**
@@ -35,13 +35,13 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 **Agent scope**
 - Which of the three agent features (weekly briefing, anomaly explainer, ad hoc Q&A chat) are must-have for the weekend vs stretch goals?
-- Whose Claude API key powers the agent calls — your own, with a usage cap, since this is a demo, not the end user's?
+- Whose Claude API key powers the agent calls: your own, with a usage cap, since this is a demo, not the end user's?
 
 **Output of this phase:** a written schema (even just a `schema.sql` draft) and a one-paragraph user flow description, so every later phase is building against a fixed target.
 
 ---
 
-## Phase 1 — Project Scaffolding
+## Phase 1: Project Scaffolding
 
 - `npx create-next-app@latest` (TypeScript, Tailwind, App Router)
 - Create a new Supabase project; note the project URL and anon/service keys
@@ -53,7 +53,7 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 ---
 
-## Phase 2 — Database Schema & Auth
+## Phase 2: Database Schema & Auth
 
 - Create tables in Supabase SQL editor:
   ```sql
@@ -86,7 +86,7 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 ---
 
-## Phase 3 — Secure Key Storage & Onboarding
+## Phase 3: Secure Key Storage & Onboarding
 
 - Build the "Connect a provider" screen: provider dropdown (Anthropic, OpenAI, Bedrock-synthetic), key input field, label field
 - On submit: server-side route makes one lightweight validation call to the provider (e.g. a minimal usage-endpoint call) to confirm the key works before storing anything
@@ -98,12 +98,12 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 ---
 
-## Phase 4 — Ingestion Pipeline (Backfill)
+## Phase 4: Ingestion Pipeline (Backfill)
 
 - Server-side function per provider:
   - **Anthropic**: call the Admin Usage and Cost API with the decrypted key, pull the last 30–90 days of daily usage by model/key
   - **OpenAI**: call the Usage/Costs API similarly
-  - **Bedrock (synthetic)**: generate a realistic dataset instead of calling AWS — vary token counts and models (Nova Micro/Pro, Claude models via Bedrock) across a date range, with a random-walk-plus-weekly-seasonality pattern so it looks like real usage, not a flat line
+  - **Bedrock (synthetic)**: generate a realistic dataset instead of calling AWS; vary token counts and models (Nova Micro/Pro, Claude models via Bedrock) across a date range, with a random-walk-plus-weekly-seasonality pattern so it looks like real usage, not a flat line
 - Normalize each provider's response into the shared `usage_records` shape and bulk-insert
 - Wire this to the "Sync now" button in the dashboard, with a loading state and error handling (expired key, rate limit, network failure)
 - Update `last_synced_at` on the `api_connections` row after a successful sync
@@ -112,7 +112,7 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 ---
 
-## Phase 5 — Dashboard
+## Phase 5: Dashboard
 
 - Build `/dashboard`: reads exclusively from `usage_records` (via Supabase client with RLS, or your own API route), never calls provider APIs at render time
 - Charts (Recharts): total spend over time (line), spend by model (bar or pie), spend by provider (stacked bar)
@@ -123,7 +123,7 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 ---
 
-## Phase 6 — Anomaly Detection
+## Phase 6: Anomaly Detection
 
 - Compute a rolling average (e.g. 7-day) and flag any day where spend exceeds it by a chosen threshold (e.g. 2 standard deviations, or simply >50% above rolling average for a fast first pass)
 - Surface flagged days as a visual marker on the spend-over-time chart, plus a small alert list ("Aug 24: spend was 3.2x your 7-day average")
@@ -133,7 +133,7 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 ---
 
-## Phase 7 — Forecasting
+## Phase 7: Forecasting
 
 - Decide implementation per Phase 0: either a small Python serverless function using `statsmodels`' Holt-Winters exponential smoothing, or a simpler day-of-week-aware linear regression computed client-side in JS
 - Input: the user's daily spend history from `usage_records`; output: a projected spend line for the next 7–30 days with a confidence band
@@ -143,9 +143,9 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 ---
 
-## Phase 8 — Savings Simulator
+## Phase 8: Savings Simulator
 
-- Build a small pricing reference table (per-model input/output cost per million tokens, for the models you're tracking) — keep this as a config file you can update manually rather than trying to live-fetch pricing
+- Build a small pricing reference table (per-model input/output cost per million tokens, for the models you're tracking), and keep this as a config file you can update manually rather than trying to live-fetch pricing
 - UI: pick a workload (either an existing model/usage slice from their real data, or a manual token-count entry), select an alternative model, show the cost delta
 - Surface a "you could save $X/month by switching Y workload to Z model" style callout, mirroring Ramp's own framing
 
@@ -153,7 +153,7 @@ Before scaffolding anything, lock in these decisions so the architecture and dat
 
 ---
 
-## Phase 9 — Agent Features (Claude API tool use)
+## Phase 9: Agent Features (Claude API tool use)
 
 Build these in order of value, treating anything past the first as a stretch goal for the weekend:
 
@@ -165,7 +165,7 @@ Build these in order of value, treating anything past the first as a stretch goa
 
 ---
 
-## Phase 10 — Security & Trust Polish
+## Phase 10: Security & Trust Polish
 
 - Confirm no raw API key ever appears in client-side JS, logs, or error messages (test this by deliberately triggering an error and checking the browser console/network tab)
 - Add basic rate limiting on the key-validation and sync endpoints (even a simple in-memory or Supabase-based counter is enough for a demo)
@@ -175,7 +175,7 @@ Build these in order of value, treating anything past the first as a stretch goa
 
 ---
 
-## Phase 11 — Deploy & QA
+## Phase 11: Deploy & QA
 
 - Final deploy: Next.js on Vercel, Supabase in production mode, environment variables confirmed on both sides
 - End-to-end test: sign up as a fresh user, connect a real key, sync, view dashboard, trigger the briefing agent, run the savings simulator
@@ -185,7 +185,7 @@ Build these in order of value, treating anything past the first as a stretch goa
 
 ---
 
-## Phase 12 — Outreach Prep
+## Phase 12: Outreach Prep
 
 - Write a short README: what it does, why you built it (the gap it fills relative to Ramp's current provider list), the architecture diagram, and an honest note on what's synthetic vs real
 - Record a short demo (screen recording or GIF) showing sign-up → connect → dashboard → briefing agent, in case Richard doesn't want to paste his own key into a stranger's app

@@ -19,7 +19,7 @@ export default async function SimulatorPage() {
         Compare a workload&apos;s cost under a different model. Pricing is a
         manually maintained $/million-token table (see{" "}
         <code className="font-mono">src/lib/pricing/models.ts</code>), not a
-        live provider fetch — costs are estimates, not billing figures.
+        live provider fetch; costs are estimates, not billing figures.
       </p>
 
       <div className="mt-8">

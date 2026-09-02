@@ -8,7 +8,7 @@ export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   // Supabase isn't configured yet (e.g. fresh clone, before .env.local is
-  // filled in) — let requests through unauthenticated rather than crashing
+  // filled in): let requests through unauthenticated rather than crashing
   // every route via createServerClient's hard throw on a missing URL/key.
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -39,7 +39,7 @@ export async function updateSession(request: NextRequest) {
   );
 
   // IMPORTANT: avoid writing logic between createServerClient and getUser().
-  // A stray error here can randomly log users out — see Supabase SSR docs.
+  // A stray error here can randomly log users out (see Supabase SSR docs).
   const {
     data: { user },
   } = await supabase.auth.getUser();

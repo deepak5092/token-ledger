@@ -1,5 +1,5 @@
 -- Phase 10: rate limiting for endpoints that call out to a paid provider
--- API on the app's own dime — key validation, sync, and the Claude agent
+-- API on the app's own dime: key validation, sync, and the Claude agent
 -- calls. A fixed-window counter per (subject, endpoint) key, checked and
 -- incremented atomically in one upsert so concurrent requests can't race
 -- past the limit.
@@ -13,7 +13,7 @@ create table rate_limits (
 alter table rate_limits enable row level security;
 -- No policies: this table is only ever touched via check_rate_limit()
 -- below, which runs as the function owner (service_role) regardless of
--- caller — nothing here needs a per-user RLS policy.
+-- caller. Nothing here needs a per-user RLS policy.
 
 create or replace function check_rate_limit(p_key text, p_max_requests int, p_window_seconds int)
 returns boolean

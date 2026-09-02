@@ -54,7 +54,7 @@ export default async function DashboardPage() {
       ) : !hasUsage ? (
         <Card className="mt-8 max-w-md text-center">
           <p className="text-zinc-700 dark:text-zinc-300">
-            No usage data yet — sync a connection to populate your dashboard.
+            No usage data yet. Sync a connection to populate your dashboard.
           </p>
           <Link href="/dashboard/connections" className={buttonVariants({ className: "mt-3" })}>
             Go sync a connection

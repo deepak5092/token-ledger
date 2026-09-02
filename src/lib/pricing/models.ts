@@ -1,14 +1,14 @@
 // Manually maintained $/million-token pricing, keyed by the exact model
-// string each provider's usage API reports. Not live-fetched — update by
+// string each provider's usage API reports. Not live-fetched: update by
 // hand as providers change pricing. Sourced from each provider's own
 // pricing page, verified 2026-08-31:
 //   - Anthropic: https://www.anthropic.com/pricing (current first-party models only)
 //   - OpenAI: https://developers.openai.com/api/docs/pricing
 // Scoped to Anthropic + OpenAI (the two providers with real, non-synthetic
-// ingestion) — the Bedrock synthetic connector generates its own
+// ingestion): the Bedrock synthetic connector generates its own
 // already-labeled-fake pricing in bedrock-synthetic.ts and isn't covered
 // here. A model not in this table (retired, or too new) has no cost
-// estimate available — callers should treat that as "unknown", not $0.
+// estimate available; callers should treat that as "unknown", not $0.
 
 export type ModelPricing = {
   model: string;

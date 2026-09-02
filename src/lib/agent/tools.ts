@@ -33,7 +33,7 @@ const dateRangeSchema = {
   },
 };
 
-// Thin, read-only wrappers over usage_records — every result is scoped to
+// Thin, read-only wrappers over usage_records: every result is scoped to
 // the signed-in user via the RLS-scoped supabase client passed in, never a
 // service-role client. This is the tool surface for Phase 9's agent
 // features (weekly briefing, anomaly explainer, ad hoc Q&A chat).
@@ -69,7 +69,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "get_usage_for_date",
     description:
-      "Per-model, per-connection breakdown of usage and cost for one specific date — use this to investigate what drove a spend spike on that day.",
+      "Per-model, per-connection breakdown of usage and cost for one specific date. Use this to investigate what drove a spend spike on that day.",
     input_schema: {
       type: "object",
       properties: {
@@ -85,7 +85,7 @@ export async function executeAgentTool(
   name: string,
   input: Record<string, unknown>,
 ): Promise<unknown> {
-  // Proof the agent is actually querying data, not hallucinating — visible
+  // Proof the agent is actually querying data, not hallucinating: visible
   // in server logs for every tool call it makes.
   console.log("[agent] tool call:", name, input);
 

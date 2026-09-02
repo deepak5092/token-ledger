@@ -91,13 +91,13 @@ export function SimulatorForm({ workloads }: { workloads: Workload[] }) {
             >
               {workloads.map((w) => (
                 <option key={w.model} value={w.model}>
-                  {truncate(w.model)} — {currency(w.monthlyCost)}/mo
+                  {truncate(w.model)}: {currency(w.monthlyCost)}/mo
                 </option>
               ))}
             </Select>
           </div>
         ) : (
-          <p className="text-sm text-zinc-500">No synced usage yet — use manual entry instead.</p>
+          <p className="text-sm text-zinc-500">No synced usage yet. Use manual entry instead.</p>
         )
       ) : (
         <div className="grid max-w-md grid-cols-1 gap-4 sm:grid-cols-2">
@@ -152,11 +152,11 @@ export function SimulatorForm({ workloads }: { workloads: Workload[] }) {
       <Card className="max-w-md">
         {currentCost === null ? (
           <p className="text-sm text-zinc-500">
-            No pricing data for {truncate(currentModel)} — can&apos;t estimate a comparison.
+            No pricing data for {truncate(currentModel)}. Can&apos;t estimate a comparison.
           </p>
         ) : projectedCost === null ? (
           <p className="text-sm text-zinc-500">
-            No pricing data for {targetLabel} — can&apos;t estimate a comparison.
+            No pricing data for {targetLabel}. Can&apos;t estimate a comparison.
           </p>
         ) : (
           <>
@@ -175,7 +175,7 @@ export function SimulatorForm({ workloads }: { workloads: Workload[] }) {
             >
               <DeltaIcon className="h-5 w-5 shrink-0" aria-hidden />
               {delta === null
-                ? "—"
+                ? "-"
                 : delta > 0
                   ? `Save ${currency(delta)}/mo`
                   : delta < 0

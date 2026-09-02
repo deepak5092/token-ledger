@@ -1,7 +1,7 @@
 import type { NormalizedUsageRecord } from "./types";
 
 // Per-model baseline daily token volume and $/million-token pricing, used
-// only to shape realistic-looking synthetic data — not real Bedrock prices.
+// only to shape realistic-looking synthetic data, not real Bedrock prices.
 const BEDROCK_MODELS = [
   { name: "amazon.nova-micro-v1:0", baseTokens: 200_000, inCost: 0.035, outCost: 0.14 },
   { name: "amazon.nova-pro-v1:0", baseTokens: 80_000, inCost: 0.8, outCost: 3.2 },

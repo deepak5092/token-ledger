@@ -19,7 +19,7 @@ export async function GET() {
     const supabase = await createClient();
     const { error } = await supabase.auth.getUser();
 
-    // "Auth session missing" just means no one is logged in yet — that's
+    // "Auth session missing" just means no one is logged in yet; that's
     // still a successful round trip to the project.
     if (error && error.name !== "AuthSessionMissingError") {
       return NextResponse.json(

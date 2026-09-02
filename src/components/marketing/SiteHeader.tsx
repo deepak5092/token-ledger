@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { buttonVariants } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export function SiteHeader() {
   return (
@@ -9,6 +10,7 @@ export function SiteHeader() {
         <Logo />
       </Link>
       <div className="flex items-center gap-3">
+        <ThemeToggle />
         <Link href="/login" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           Log in
         </Link>

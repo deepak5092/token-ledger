@@ -47,7 +47,7 @@ export async function fetchOpenAIUsage(
           input_tokens: inputTokens,
           output_tokens: outputTokens,
           // OpenAI's dollar cost comes from a separate Costs API, not this
-          // one — estimate from the pricing table instead. Falls back to 0
+          // one. Estimate from the pricing table instead. Falls back to 0
           // for a model the table doesn't cover.
           cost_usd: estimateCost(model, inputTokens, outputTokens) ?? 0,
         });

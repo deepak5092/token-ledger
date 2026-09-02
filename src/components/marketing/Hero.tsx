@@ -27,7 +27,7 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Illustrative preview of the dashboard — a stylized design element, not a screenshot or real data */}
+        {/* Illustrative preview of the dashboard: a stylized design element, not a screenshot or real data */}
         <Card className="!p-6" aria-hidden>
           <div className="grid grid-cols-3 gap-3">
             <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-900">

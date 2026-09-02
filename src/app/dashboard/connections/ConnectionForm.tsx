@@ -48,7 +48,7 @@ export function ConnectionForm() {
               className="font-mono text-sm"
             />
             <p className="mt-1 text-xs text-zinc-500">
-              Needs usage-reporting access — an org/Admin-level key, not a
+              Needs usage-reporting access: an org/Admin-level key, not a
               regular per-project API key.
             </p>
           </div>

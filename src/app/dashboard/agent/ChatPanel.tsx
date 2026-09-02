@@ -38,7 +38,7 @@ export function ChatPanel() {
       <Card className="min-h-[200px] space-y-3">
         {messages.length === 0 && !pending && (
           <p className="text-sm text-zinc-500">
-            Ask about your spend — e.g. &quot;which model cost the most last
+            Ask about your spend, e.g. &quot;which model cost the most last
             month?&quot; or &quot;how does this week compare to last
             week?&quot;
           </p>

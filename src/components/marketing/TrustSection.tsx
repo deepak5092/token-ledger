@@ -11,7 +11,7 @@ export function TrustSection() {
           <p className="mt-1 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
             This is a demo project, not a security-audited product. Provider
             keys are encrypted via Supabase Vault and decrypted only
-            server-side — never sent to your browser. Use a scoped,
+            server-side; never sent to your browser. Use a scoped,
             rotatable, low-spend key wherever your provider supports one.
           </p>
         </div>

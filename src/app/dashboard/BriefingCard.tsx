@@ -51,7 +51,7 @@ export function BriefingCard() {
       )}
       {!text && !error && !pending && (
         <p className="mt-2 text-sm text-zinc-500">
-          Live Claude tool calls over your synced usage data — nothing is
+          Live Claude tool calls over your synced usage data. Nothing is
           precomputed.
         </p>
       )}
