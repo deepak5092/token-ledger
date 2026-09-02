@@ -2,17 +2,17 @@ import { type EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-// Handles both the signup-confirmation link and the password-recovery
-// link -- verifyOtp is generic over `type`, so no branching needed here.
-// Requires the Supabase project's "Confirm signup" AND "Reset Password"
-// email templates to link here with a token_hash, e.g.
+// Handles the signup-confirmation link. Requires the Supabase project's
+// "Confirm signup" email template to link here with a token_hash, e.g.
 // {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
+//
+// Also *can* handle the password-recovery link the same way (verifyOtp is
+// generic over `type`) if "Reset Password" is customized to match:
 // {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password
-// resetPasswordForEmail's redirectTo becomes {{ .RedirectTo }} in that
-// template, so it only takes effect if the template actually references it
-// (see requestPasswordReset in app/login/actions.ts). If "Reset Password"
-// is still on Supabase's default template, its link bypasses this route
-// entirely and /reset-password's session guard will reject it as expired.
+// That's optional, not required -- ResetPasswordGate (in
+// components/auth/) handles Supabase's *default* recovery template too,
+// whose link bypasses this route and lands on /reset-password with the
+// session tokens in a URL hash instead.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
