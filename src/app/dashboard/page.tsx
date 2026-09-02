@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { SummaryCards } from "./SummaryCards";
+import { OverviewTabs } from "./OverviewTabs";
 import { AnomalyAlerts } from "./AnomalyAlerts";
 import { BriefingCard } from "./BriefingCard";
 import { ForecastedSpendChart } from "./ForecastedSpendChart";
@@ -18,16 +19,34 @@ import {
 } from "@/lib/dashboard/aggregate";
 import { detectAnomalies } from "@/lib/dashboard/anomaly";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ connection?: string }>;
+}) {
+  const { connection: connectionParam } = await searchParams;
   const supabase = await createClient();
 
-  const { data: connections } = await supabase.from("api_connections").select("id");
+  const { data: connections } = await supabase
+    .from("api_connections")
+    .select("id, provider, label");
 
-  const { data: usageRows } = await supabase
+  // Only trust the query param as a filter if it names a connection this
+  // user actually owns (RLS would return zero rows for someone else's id
+  // anyway, but this keeps an invalid/stale id from silently producing an
+  // "Overview" that's actually filtered to nothing).
+  const selectedConnectionId = connections?.some((c) => c.id === connectionParam)
+    ? connectionParam
+    : undefined;
+
+  let usageQuery = supabase
     .from("usage_records")
     .select("date, model, cost_usd, input_tokens, output_tokens, api_connections(provider)")
-    .order("date", { ascending: true })
-    .returns<UsageRow[]>();
+    .order("date", { ascending: true });
+  if (selectedConnectionId) {
+    usageQuery = usageQuery.eq("connection_id", selectedConnectionId);
+  }
+  const { data: usageRows } = await usageQuery.returns<UsageRow[]>();
 
   const rows = usageRows ?? [];
   const hasConnections = (connections?.length ?? 0) > 0;
@@ -38,6 +57,12 @@ export default async function DashboardPage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
+
+      {hasConnections && (
+        <div className="mt-4">
+          <OverviewTabs connections={connections ?? []} selectedId={selectedConnectionId} />
+        </div>
+      )}
 
       {!hasConnections ? (
         <Card className="mt-8 max-w-md text-center">
