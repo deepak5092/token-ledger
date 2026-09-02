@@ -16,7 +16,7 @@ const FEATURES = [
   },
   {
     icon: AlertTriangle,
-    title: "Catch the weird days",
+    title: "Catch the anomalies",
     description:
       "Any day that jumps well past your rolling average gets flagged on its own, and you can ask the agent to dig into why.",
   },

@@ -130,7 +130,7 @@ export function SidebarNav({
             component's other collapsed icons. */}
         <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between gap-2")}>
           {!collapsed && (
-            <Link href="/dashboard" className="px-1">
+            <Link href="/dashboard">
               <Logo size={22} />
             </Link>
           )}

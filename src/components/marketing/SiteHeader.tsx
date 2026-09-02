@@ -10,13 +10,13 @@ export function SiteHeader() {
         <Logo />
       </Link>
       <div className="flex items-center gap-3">
-        <ThemeToggle />
         <Link href="/login" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
           Log in
         </Link>
         <Link href="/signup" className={buttonVariants({ size: "sm" })}>
           Get started
         </Link>
+        <ThemeToggle />
       </div>
     </header>
   );
