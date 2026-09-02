@@ -1,8 +1,12 @@
-import Link from "next/link";
+"use client";
+
 import { buttonVariants } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useAuthOverlay } from "@/components/auth/AuthOverlay";
 
 export function Hero() {
+  const { openLogin, openSignup } = useAuthOverlay();
+
   return (
     <section className="mx-auto max-w-6xl px-6 py-12 sm:py-20">
       <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
@@ -17,12 +21,16 @@ export function Hero() {
             any of it back to you in plain language.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/signup" className={buttonVariants({ size: "lg" })}>
+            <button type="button" onClick={openSignup} className={buttonVariants({ size: "lg" })}>
               Get started
-            </Link>
-            <Link href="/login" className={buttonVariants({ variant: "outline", size: "lg" })}>
+            </button>
+            <button
+              type="button"
+              onClick={openLogin}
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
               Log in
-            </Link>
+            </button>
           </div>
         </div>
 
