@@ -91,7 +91,11 @@ export function OverviewLayout({
       <div
         className={cn(
           "grid grid-cols-1 gap-8 transition-[grid-template-columns] duration-200",
-          open && "lg:grid-cols-[1fr_420px]",
+          // clamp(), not a fixed px guess: scales with viewport width
+          // between a floor (never too cramped to read) and a ceiling
+          // (never absurdly wide on large screens) instead of needing to
+          // be re-picked by hand every time content changes.
+          open && "lg:grid-cols-[1fr_clamp(320px,28vw,480px)]",
         )}
       >
         <div className="space-y-8">{children}</div>
