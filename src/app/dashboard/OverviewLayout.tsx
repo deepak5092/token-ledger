@@ -91,7 +91,7 @@ export function OverviewLayout({
       <div
         className={cn(
           "grid grid-cols-1 gap-8 transition-[grid-template-columns] duration-200",
-          open && "lg:grid-cols-[1fr_320px]",
+          open && "lg:grid-cols-[1fr_420px]",
         )}
       >
         <div className="space-y-8">{children}</div>
