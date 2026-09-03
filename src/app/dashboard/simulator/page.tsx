@@ -16,10 +16,9 @@ export default async function SimulatorPage() {
     <div>
       <h1 className="text-2xl font-semibold text-foreground">Savings simulator</h1>
       <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-        Compare a workload&apos;s cost under a different model. Pricing is a
-        manually maintained $/million-token table (see{" "}
-        <code className="font-mono">src/lib/pricing/models.ts</code>), not a
-        live provider fetch; costs are estimates, not billing figures.
+        See what a workload would cost on a different model. These are
+        estimates based on our own pricing list, not your actual bill, so
+        real numbers may vary a little.
       </p>
 
       <div className="mt-8">
