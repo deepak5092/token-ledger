@@ -109,7 +109,7 @@ export default async function DashboardPage({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
+        <h1 className="text-2xl leading-none font-semibold text-foreground">AI Analytics</h1>
         {hasConnections && (
           <DateRangePicker
             key={`${range}-${rangeStartStr}-${rangeEndStr}`}
