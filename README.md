@@ -58,18 +58,22 @@ easy.
 
 ## Background sync
 
-`vercel.json` schedules `GET /api/cron/sync` every 6 hours via Vercel
-Cron, which Vercel calls with `Authorization: Bearer $CRON_SECRET`
+`vercel.json` schedules `GET /api/cron/sync` once daily (06:00 UTC) via
+Vercel Cron, which Vercel calls with `Authorization: Bearer $CRON_SECRET`
 automatically (must be set in the Vercel project's env vars, matching
-`.env.local`). The route (`src/app/api/cron/sync/route.ts`) walks every
-connection across every user with the service-role client and, for each,
-re-fetches usage records (`src/lib/sync/syncConnection.ts`) and the
-key's own metadata from the provider's admin "list API keys" endpoint —
-matched back to the stored key via its redacted hint, since neither
-provider ever returns a full key value (`src/lib/providers/metadata.ts`).
-This means every connected user's real provider key gets used
-automatically on a schedule, not just when they visit the app — worth
-knowing before connecting a key you don't want hit periodically.
+`.env.local`). Daily, not more often, because Vercel's Hobby plan caps
+cron jobs at once per day — a more frequent cron expression fails at
+deploy time on that plan; bump the schedule in `vercel.json` if the
+project is on Pro/Enterprise. The route
+(`src/app/api/cron/sync/route.ts`) walks every connection across every
+user with the service-role client and, for each, re-fetches usage
+records (`src/lib/sync/syncConnection.ts`) and the key's own metadata
+from the provider's admin "list API keys" endpoint — matched back to the
+stored key via its redacted hint, since neither provider ever returns a
+full key value (`src/lib/providers/metadata.ts`). This means every
+connected user's real provider key gets used automatically on a
+schedule, not just when they visit the app — worth knowing before
+connecting a key you don't want hit periodically.
 
 ## Demo account
 
