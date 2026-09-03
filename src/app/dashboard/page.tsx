@@ -3,8 +3,7 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { SummaryCards } from "./SummaryCards";
 import { OverviewTabs } from "./OverviewTabs";
-import { AnomalyAlerts } from "./AnomalyAlerts";
-import { BriefingCard } from "./BriefingCard";
+import { AgentPanel } from "./AgentPanel";
 import { ForecastedSpendChart } from "./ForecastedSpendChart";
 import { SpendByModelChart } from "./charts/SpendByModelChart";
 import { SpendByProviderChart } from "./charts/SpendByProviderChart";
@@ -81,55 +80,52 @@ export default async function DashboardPage({
           </Link>
         </Card>
       ) : (
-        <div className="mt-6 space-y-8">
-          <SummaryCards summary={computeSummary(rows)} />
+        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
+          <div className="space-y-8">
+            <SummaryCards summary={computeSummary(rows)} />
 
-          <BriefingCard />
+            <section>
+              <Suspense
+                fallback={
+                  <>
+                    <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      Spend over time
+                    </h2>
+                    <Card className="mt-2 h-[260px] animate-pulse bg-zinc-100 dark:bg-zinc-900" />
+                  </>
+                }
+              >
+                <ForecastedSpendChart spendWithAnomalies={spendWithAnomalies} />
+              </Suspense>
+            </section>
 
-          <section>
-            <Suspense
-              fallback={
-                <>
-                  <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Spend over time
-                  </h2>
-                  <Card className="mt-2 h-[260px] animate-pulse bg-zinc-100 dark:bg-zinc-900" />
-                </>
-              }
-            >
-              <ForecastedSpendChart spendWithAnomalies={spendWithAnomalies} />
-            </Suspense>
-          </section>
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+              <section>
+                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Spend by model
+                </h2>
+                <Card className="mt-2">
+                  <SpendByModelChart data={spendByModel(rows)} />
+                </Card>
+              </section>
 
-          <section>
-            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Anomalies</h2>
-            <div className="mt-2">
-              <AnomalyAlerts points={spendWithAnomalies} />
+              <section>
+                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Spend by provider
+                </h2>
+                <Card className="mt-2">
+                  {(() => {
+                    const { data, providers } = weeklySpendByProvider(rows);
+                    return <SpendByProviderChart data={data} providers={providers} />;
+                  })()}
+                </Card>
+              </section>
             </div>
-          </section>
-
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <section>
-              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Spend by model
-              </h2>
-              <Card className="mt-2">
-                <SpendByModelChart data={spendByModel(rows)} />
-              </Card>
-            </section>
-
-            <section>
-              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Spend by provider
-              </h2>
-              <Card className="mt-2">
-                {(() => {
-                  const { data, providers } = weeklySpendByProvider(rows);
-                  return <SpendByProviderChart data={data} providers={providers} />;
-                })()}
-              </Card>
-            </section>
           </div>
+
+          <aside className="lg:sticky lg:top-8 lg:h-fit">
+            <AgentPanel spendWithAnomalies={spendWithAnomalies} />
+          </aside>
         </div>
       )}
     </div>

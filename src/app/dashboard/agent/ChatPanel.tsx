@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Bot, ArrowUp } from "lucide-react";
-import { streamAgent, type ChatMessage } from "@/lib/agent/stream-client";
+import { useAgentChat } from "@/lib/agent/useAgentChat";
 
 const SUGGESTIONS = [
   "Which model cost the most last month?",
@@ -11,11 +11,8 @@ const SUGGESTIONS = [
 ];
 
 export function ChatPanel() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const { messages, error, pending, draft, submit: submitQuestion } = useAgentChat();
   const [input, setInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const [draft, setDraft] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -23,33 +20,10 @@ export function ChatPanel() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, draft]);
 
-  const submit = async (question: string) => {
-    const q = question.trim();
-    if (!q || pending) return;
-
-    setError(null);
+  const submit = (question: string) => {
     setInput("");
-    setDraft("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-    setPending(true);
-    const history = messages;
-    setMessages([...history, { role: "user", content: q }]);
-
-    let text = "";
-    await streamAgent(
-      { mode: "chat", question: q, history },
-      {
-        onText: (chunk) => {
-          text += chunk;
-          setDraft(text);
-        },
-        onError: setError,
-      },
-    );
-
-    setPending(false);
-    setDraft("");
-    if (text) setMessages((m) => [...m, { role: "assistant", content: text }]);
+    submitQuestion(question);
   };
 
   const onSubmit = (e: React.FormEvent) => {
