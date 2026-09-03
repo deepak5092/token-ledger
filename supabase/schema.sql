@@ -10,8 +10,30 @@ create table api_connections (
   label text,
   vault_secret_id uuid,             -- reference into Supabase Vault (encrypted key)
   created_at timestamptz default now(),
-  last_synced_at timestamptz
+  last_synced_at timestamptz,
+  -- Populated by the sync pipeline (src/lib/sync/syncConnection.ts) from
+  -- each provider's own "list API keys" admin endpoint -- matched back to
+  -- this specific key via its redacted hint, since neither provider ever
+  -- returns a full key value. All null until the first successful sync;
+  -- provider_expires_at is Anthropic-only (OpenAI's admin keys endpoint
+  -- doesn't expose an expiry), and provider_key_status likewise.
+  provider_key_hint text,
+  provider_key_name text,
+  provider_key_status text,
+  provider_created_at timestamptz,
+  provider_expires_at timestamptz,
+  provider_owner text
 );
+
+-- Already have this table from before the provider_* columns existed?
+-- Run just this block by hand instead of the create table above --
+-- add column ... if not exists makes it safe to run more than once.
+alter table api_connections add column if not exists provider_key_hint text;
+alter table api_connections add column if not exists provider_key_name text;
+alter table api_connections add column if not exists provider_key_status text;
+alter table api_connections add column if not exists provider_created_at timestamptz;
+alter table api_connections add column if not exists provider_expires_at timestamptz;
+alter table api_connections add column if not exists provider_owner text;
 
 create table usage_records (
   id uuid primary key default gen_random_uuid(),

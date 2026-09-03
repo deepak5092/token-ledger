@@ -30,6 +30,5 @@ export async function checkRateLimit(key: string, config: RateLimitConfig): Prom
 // id is a meaningful rate-limit key.
 export const RATE_LIMITS = {
   keyValidation: { maxRequests: 5, windowSeconds: 600 }, // 5 per 10 min
-  sync: { maxRequests: 10, windowSeconds: 60 }, // 10 per min
   agent: { maxRequests: 15, windowSeconds: 3600 }, // 15 per hour, hits the dev's own Anthropic key
 } as const;
