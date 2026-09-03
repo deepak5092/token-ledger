@@ -87,15 +87,23 @@ export function OverviewLayout({
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
         {showNudge && !open && <Nudge onOpen={openPanel} />}
 
-        <button
-          type="button"
-          onClick={() => (open ? setOpen(false) : openPanel())}
-          aria-label={open ? "Close AI insights" : "Open AI insights"}
-          aria-expanded={open}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-colors hover:bg-accent-hover"
-        >
-          {open ? <X className="h-5 w-5" aria-hidden /> : <Bot className="h-5 w-5" aria-hidden />}
-        </button>
+        <div className="relative">
+          {!open && (
+            <span
+              className="absolute inset-0 animate-ping rounded-full bg-accent opacity-75"
+              aria-hidden
+            />
+          )}
+          <button
+            type="button"
+            onClick={() => (open ? setOpen(false) : openPanel())}
+            aria-label={open ? "Close AI insights" : "Open AI insights"}
+            aria-expanded={open}
+            className="relative flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-colors hover:bg-accent-hover"
+          >
+            {open ? <X className="h-5 w-5" aria-hidden /> : <Bot className="h-5 w-5" aria-hidden />}
+          </button>
+        </div>
       </div>
     </div>
   );
