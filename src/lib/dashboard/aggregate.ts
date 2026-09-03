@@ -83,6 +83,118 @@ export function weeklySpendByProvider(rows: UsageRow[]): {
   return { data, providers };
 }
 
+export type TokenPoint = { date: string; input: number; output: number };
+
+export function tokensOverTime(rows: UsageRow[]): TokenPoint[] {
+  const byDate = new Map<string, { input: number; output: number }>();
+  for (const r of rows) {
+    const entry = byDate.get(r.date) ?? { input: 0, output: 0 };
+    entry.input += r.input_tokens ?? 0;
+    entry.output += r.output_tokens ?? 0;
+    byDate.set(r.date, entry);
+  }
+  return Array.from(byDate.entries())
+    .map(([date, { input, output }]) => ({ date, input, output }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export type IndexedPoint = {
+  date: string;
+  cost: number;
+  tokens: number;
+  spendIndex: number | null;
+  tokensIndex: number | null;
+};
+
+// Indexes both series to their own first non-zero day = 100 instead of a
+// dual-axis overlay (misleading: arbitrary axis scaling can invent a
+// correlation that isn't there) -- one shared axis, so the reader sees
+// which of the two is actually growing faster. The tooltip still carries
+// the real $ and token values, since an index number alone isn't
+// meaningful on its own.
+export function indexedSpendVsTokens(rows: UsageRow[]): IndexedPoint[] {
+  const byDate = new Map<string, { cost: number; tokens: number }>();
+  for (const r of rows) {
+    const entry = byDate.get(r.date) ?? { cost: 0, tokens: 0 };
+    entry.cost += r.cost_usd;
+    entry.tokens += (r.input_tokens ?? 0) + (r.output_tokens ?? 0);
+    byDate.set(r.date, entry);
+  }
+  const sorted = Array.from(byDate.entries()).sort(([a], [b]) => a.localeCompare(b));
+  const costBase = sorted.find(([, v]) => v.cost > 0)?.[1].cost;
+  const tokensBase = sorted.find(([, v]) => v.tokens > 0)?.[1].tokens;
+
+  return sorted.map(([date, { cost, tokens }]) => ({
+    date,
+    cost: round(cost),
+    tokens,
+    spendIndex: costBase ? round((cost / costBase) * 100) : null,
+    tokensIndex: tokensBase ? round((tokens / tokensBase) * 100) : null,
+  }));
+}
+
+export type CumulativePoint = { date: string; cumulative: number };
+
+export function cumulativeSpend(rows: UsageRow[]): CumulativePoint[] {
+  let running = 0;
+  return dailySpend(rows).map((d) => {
+    running += d.cost;
+    return { date: d.date, cumulative: round(running) };
+  });
+}
+
+export function cumulativeTokens(rows: UsageRow[]): CumulativePoint[] {
+  const byDate = new Map<string, number>();
+  for (const r of rows) {
+    byDate.set(r.date, (byDate.get(r.date) ?? 0) + (r.input_tokens ?? 0) + (r.output_tokens ?? 0));
+  }
+  const sorted = Array.from(byDate.entries()).sort(([a], [b]) => a.localeCompare(b));
+  let running = 0;
+  return sorted.map(([date, tokens]) => {
+    running += tokens;
+    return { date, cumulative: running };
+  });
+}
+
+export type TokenSplit = { input: number; output: number };
+
+export function tokenSplit(rows: UsageRow[]): TokenSplit {
+  let input = 0;
+  let output = 0;
+  for (const r of rows) {
+    input += r.input_tokens ?? 0;
+    output += r.output_tokens ?? 0;
+  }
+  return { input, output };
+}
+
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+export type DayOfWeekPoint = { day: string; cost: number };
+
+export function spendByDayOfWeek(rows: UsageRow[]): DayOfWeekPoint[] {
+  const totals = new Array(7).fill(0);
+  for (const r of rows) {
+    const idx = (new Date(`${r.date}T00:00:00Z`).getUTCDay() + 6) % 7; // Mon=0 .. Sun=6
+    totals[idx] += r.cost_usd;
+  }
+  return WEEKDAY_LABELS.map((day, i) => ({ day, cost: round(totals[i]) }));
+}
+
+export type DonutSlice = { label: string; cost: number };
+
+// Caps pie/donut slices at a legible count by folding everything past
+// `topN` into a single neutral "Other" bucket, rather than generating a
+// color per long-tail entry (a 9th+ hue is indistinguishable from an
+// existing one under color-vision deficiency).
+export function foldOthers(points: ModelSpendPoint[], topN: number): DonutSlice[] {
+  const top = points.slice(0, topN).map((p) => ({ label: p.model, cost: p.cost }));
+  const rest = points.slice(topN);
+  if (rest.length === 0) return top;
+  const otherCost = round(rest.reduce((sum, p) => sum + p.cost, 0));
+  return [...top, { label: "Other", cost: otherCost }];
+}
+
 export type SummaryStats = {
   totalThisPeriod: number;
   totalPreviousPeriod: number;

@@ -8,6 +8,13 @@ import { OverviewLayout } from "./OverviewLayout";
 import { ForecastedSpendChart } from "./ForecastedSpendChart";
 import { SpendByModelChart } from "./charts/SpendByModelChart";
 import { SpendByProviderChart } from "./charts/SpendByProviderChart";
+import { TokensOverTimeChart } from "./charts/TokensOverTimeChart";
+import { SpendVsTokensIndexChart } from "./charts/SpendVsTokensIndexChart";
+import { CumulativeSpendChart } from "./charts/CumulativeSpendChart";
+import { CumulativeTokensChart } from "./charts/CumulativeTokensChart";
+import { SpendByModelDonut } from "./charts/SpendByModelDonut";
+import { TokenMixDonut } from "./charts/TokenMixDonut";
+import { SpendByDayOfWeekChart } from "./charts/SpendByDayOfWeekChart";
 import { Card } from "@/components/ui/Card";
 import { buttonVariants } from "@/components/ui/Button";
 import {
@@ -15,6 +22,13 @@ import {
   dailySpend,
   spendByModel,
   weeklySpendByProvider,
+  tokensOverTime,
+  indexedSpendVsTokens,
+  cumulativeSpend,
+  cumulativeTokens,
+  tokenSplit,
+  spendByDayOfWeek,
+  foldOthers,
   type UsageRow,
 } from "@/lib/dashboard/aggregate";
 import { detectAnomalies } from "@/lib/dashboard/anomaly";
@@ -188,6 +202,73 @@ export default async function DashboardPage({
                 </Card>
               </section>
             </div>
+
+            <section>
+              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Tokens over time
+              </h2>
+              <Card className="mt-2">
+                <TokensOverTimeChart data={tokensOverTime(chartRows)} />
+              </Card>
+            </section>
+
+            <section>
+              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Spend vs. tokens
+              </h2>
+              <Card className="mt-2">
+                <SpendVsTokensIndexChart data={indexedSpendVsTokens(chartRows)} />
+              </Card>
+            </section>
+
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+              <section>
+                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Cumulative spend
+                </h2>
+                <Card className="mt-2">
+                  <CumulativeSpendChart data={cumulativeSpend(chartRows)} />
+                </Card>
+              </section>
+
+              <section>
+                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Cumulative tokens
+                </h2>
+                <Card className="mt-2">
+                  <CumulativeTokensChart data={cumulativeTokens(chartRows)} />
+                </Card>
+              </section>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+              <section>
+                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Spend by model
+                </h2>
+                <Card className="mt-2">
+                  <SpendByModelDonut data={foldOthers(spendByModel(chartRows), 5)} />
+                </Card>
+              </section>
+
+              <section>
+                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Token mix
+                </h2>
+                <Card className="mt-2">
+                  <TokenMixDonut split={tokenSplit(chartRows)} />
+                </Card>
+              </section>
+            </div>
+
+            <section>
+              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Spend by day of week
+              </h2>
+              <Card className="mt-2">
+                <SpendByDayOfWeekChart data={spendByDayOfWeek(chartRows)} />
+              </Card>
+            </section>
           </OverviewLayout>
         </div>
       )}
