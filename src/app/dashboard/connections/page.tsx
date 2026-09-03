@@ -77,7 +77,15 @@ export default async function ConnectionsPage({
 
       <div className="mt-8 overflow-x-auto">
         {connections?.length ? (
-          <table className="w-full min-w-[760px] border-collapse text-sm">
+          <table className="w-full min-w-[760px] table-fixed border-collapse text-sm">
+            <colgroup>
+              <col className="w-[26%]" />
+              <col className="w-[12%]" />
+              <col className="w-[20%]" />
+              <col className="w-[14%]" />
+              <col className="w-[18%]" />
+              <col className="w-[10%]" />
+            </colgroup>
             <thead>
               <tr className="border-b border-zinc-200 text-left text-xs text-zinc-500 dark:border-zinc-800">
                 <th className="py-2 pr-4 font-medium">Key</th>
@@ -92,14 +100,16 @@ export default async function ConnectionsPage({
               {connections.map((c) => (
                 <tr key={c.id} className="border-b border-zinc-100 dark:border-zinc-900">
                   <td className="py-3 pr-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <ProviderBadge provider={c.provider} />
-                      <div>
-                        <p className="font-medium text-foreground">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-foreground">
                           {c.provider_key_name || c.label || PROVIDER_LABEL[c.provider] || c.provider}
                         </p>
                         {c.provider_key_hint && (
-                          <p className="font-mono text-xs text-zinc-500">{c.provider_key_hint}</p>
+                          <p className="truncate font-mono text-xs text-zinc-500" title={c.provider_key_hint}>
+                            {c.provider_key_hint}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -120,13 +130,13 @@ export default async function ConnectionsPage({
                       <span className="text-xs text-zinc-500">Not yet synced</span>
                     )}
                   </td>
-                  <td className="py-3 pr-4 text-zinc-600 dark:text-zinc-400">
+                  <td className="truncate py-3 pr-4 text-zinc-600 dark:text-zinc-400" title={c.provider_owner ?? undefined}>
                     {c.provider_owner ?? "—"}
                   </td>
-                  <td className="py-3 pr-4 text-zinc-600 dark:text-zinc-400">
+                  <td className="truncate py-3 pr-4 text-zinc-600 dark:text-zinc-400">
                     {formatDate(c.provider_created_at ?? c.created_at)}
                   </td>
-                  <td className="py-3 pr-4 text-zinc-600 dark:text-zinc-400">
+                  <td className="truncate py-3 pr-4 text-zinc-600 dark:text-zinc-400">
                     {c.last_synced_at ? new Date(c.last_synced_at).toLocaleString() : "Not yet synced"}
                   </td>
                   <td className="py-3 pr-0 text-right">

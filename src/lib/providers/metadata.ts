@@ -29,12 +29,28 @@ export type ProviderKeyMetadata = {
   owner: string | null; // workspace id (Anthropic) or owner name (OpenAI)
 };
 
-function hintMatches(rawKey: string, hint: string): boolean {
+function splitHint(hint: string): [prefix: string, suffix: string] | null {
   const parts = hint.split(/[.*]{2,}/);
-  if (parts.length < 2) return false;
+  if (parts.length < 2) return null;
   const prefix = parts[0];
   const suffix = parts[parts.length - 1];
-  return prefix.length > 0 && suffix.length > 0 && rawKey.startsWith(prefix) && rawKey.endsWith(suffix);
+  return prefix.length > 0 && suffix.length > 0 ? [prefix, suffix] : null;
+}
+
+function hintMatches(rawKey: string, hint: string): boolean {
+  const split = splitHint(hint);
+  return !!split && rawKey.startsWith(split[0]) && rawKey.endsWith(split[1]);
+}
+
+// Anthropic's own hint is already a short "prefix...suffix" -- fine to
+// store as-is. OpenAI's redacted_value instead pads the middle out to the
+// original key's full length with a wall of asterisks (100+ chars), which
+// blew out the Connections table horizontally when rendered raw. Store
+// the compact "prefix...suffix" form for both, not whatever the provider
+// happened to send.
+function compactHint(hint: string): string {
+  const split = splitHint(hint);
+  return split ? `${split[0]}...${split[1]}` : hint;
 }
 
 async function fetchAnthropicOrgName(apiKey: string): Promise<string | null> {
@@ -69,7 +85,7 @@ export async function fetchAnthropicKeyMetadata(apiKey: string): Promise<Provide
     for (const key of data.data ?? []) {
       if (key.partial_key_hint && hintMatches(apiKey, key.partial_key_hint)) {
         return {
-          hint: key.partial_key_hint,
+          hint: compactHint(key.partial_key_hint),
           name: key.name ?? null,
           status: key.status ?? null,
           createdAt: key.created_at ?? null,
@@ -106,7 +122,7 @@ export async function fetchOpenAIKeyMetadata(apiKey: string): Promise<ProviderKe
     for (const key of data.data ?? []) {
       if (key.redacted_value && hintMatches(apiKey, key.redacted_value)) {
         return {
-          hint: key.redacted_value,
+          hint: compactHint(key.redacted_value),
           name: key.name ?? null,
           status: null, // not exposed on this endpoint
           createdAt: typeof key.created_at === "number" ? new Date(key.created_at * 1000).toISOString() : null,
