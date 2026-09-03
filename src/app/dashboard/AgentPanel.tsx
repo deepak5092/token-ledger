@@ -92,13 +92,10 @@ export function AgentPanel({
   };
 
   return (
-    // Fixed height (not just a max-h cap) so the panel reads as a tall,
-    // persistent chat surface like Snowflake's widget instead of shrinking
-    // to fit whatever's currently in it -- 3rem = the fixed `bottom-6`
-    // offset (1.5rem) OverviewLayout anchors this panel with, doubled so
-    // the gap above and below stays symmetric instead of an unexplained
-    // magic number.
-    <div className="flex h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-xl border border-zinc-200 shadow-xl dark:border-zinc-800">
+    // Height tracks the viewport (half of it) rather than a fixed px
+    // figure or the content inside, so it resizes as the window does
+    // instead of needing separate breakpoint tuning.
+    <div className="flex h-[50vh] flex-col overflow-hidden rounded-xl border border-zinc-200 shadow-xl dark:border-zinc-800">
       <div className="flex shrink-0 items-center justify-between gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground">
         <div className="flex items-center gap-2">
           <Bot className="h-4 w-4" aria-hidden />
