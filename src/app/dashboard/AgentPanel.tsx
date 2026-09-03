@@ -92,7 +92,7 @@ export function AgentPanel({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 shadow-xl dark:border-zinc-800">
+    <div className="flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-xl border border-zinc-200 shadow-xl dark:border-zinc-800">
       <div className="flex shrink-0 items-center justify-between gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground">
         <div className="flex items-center gap-2">
           <Bot className="h-4 w-4" aria-hidden />

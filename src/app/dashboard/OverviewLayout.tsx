@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { Bot, X } from "lucide-react";
+import { Bot } from "lucide-react";
 import { AgentPanel } from "./AgentPanel";
 import type { AnomalyPoint } from "@/lib/dashboard/anomaly";
 import { cn } from "@/lib/cn";
@@ -97,33 +97,36 @@ export function OverviewLayout({
         <div className="space-y-8">{children}</div>
 
         {open && (
-          <aside className="lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)]">
+          <aside className="lg:sticky lg:top-8">
             <AgentPanel spendWithAnomalies={spendWithAnomalies} onClose={() => setOpen(false)} />
           </aside>
         )}
       </div>
 
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
-        {showNudge && !open && <Nudge onOpen={openPanel} />}
+      {/* Hidden while open -- the panel's own header has a close button now,
+          so a second floating close control would just be redundant. */}
+      {!open && (
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+          {showNudge && <Nudge onOpen={openPanel} />}
 
-        <div className="relative">
-          {pulseOn && !open && (
-            <span
-              className="absolute inset-0 animate-ping rounded-full bg-accent opacity-75"
-              aria-hidden
-            />
-          )}
-          <button
-            type="button"
-            onClick={() => (open ? setOpen(false) : openPanel())}
-            aria-label={open ? "Close AI insights" : "Open AI insights"}
-            aria-expanded={open}
-            className="relative flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-colors hover:bg-accent-hover"
-          >
-            {open ? <X className="h-5 w-5" aria-hidden /> : <Bot className="h-5 w-5" aria-hidden />}
-          </button>
+          <div className="relative">
+            {pulseOn && (
+              <span
+                className="absolute inset-0 animate-ping rounded-full bg-accent opacity-75"
+                aria-hidden
+              />
+            )}
+            <button
+              type="button"
+              onClick={openPanel}
+              aria-label="Open AI insights"
+              className="relative flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg transition-colors hover:bg-accent-hover"
+            >
+              <Bot className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
