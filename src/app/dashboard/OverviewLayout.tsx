@@ -45,9 +45,8 @@ function Nudge({ onOpen }: { onOpen: () => void }) {
 }
 
 // AI insights panel starts collapsed -- opening it via the floating button
-// slides in a right-side drawer that overlays the page (dimmed backdrop,
-// main content stays put underneath), the same pattern as most platforms'
-// AI assistant side panels, rather than pushing the content grid over.
+// pushes the main content grid over to make room (same idea as the nav
+// sidebar's own collapse toggle) rather than overlaying it.
 export function OverviewLayout({
   spendWithAnomalies,
   children,
@@ -82,22 +81,6 @@ export function OverviewLayout({
     return () => timers.forEach(clearTimeout);
   }, [open]);
 
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open]);
-
   const openPanel = () => {
     setOpen(true);
     setShowNudge(false);
@@ -105,28 +88,22 @@ export function OverviewLayout({
 
   return (
     <div className="relative">
-      <div className="space-y-8">{children}</div>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
-          onClick={() => setOpen(false)}
-          aria-hidden
-        />
-      )}
-
-      <aside
+      <div
         className={cn(
-          "fixed inset-y-0 right-0 z-40 w-full max-w-sm overflow-y-auto border-l border-zinc-200 bg-zinc-50 p-6 shadow-xl transition-transform duration-200 dark:border-zinc-800 dark:bg-black",
-          open ? "translate-x-0" : "translate-x-full",
+          "grid grid-cols-1 gap-8 transition-[grid-template-columns] duration-200",
+          open && "lg:grid-cols-[1fr_320px]",
         )}
-        aria-hidden={!open}
-        aria-label="AI insights"
       >
-        <AgentPanel spendWithAnomalies={spendWithAnomalies} />
-      </aside>
+        <div className="space-y-8">{children}</div>
 
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+        {open && (
+          <aside className="lg:sticky lg:top-8 lg:h-fit">
+            <AgentPanel spendWithAnomalies={spendWithAnomalies} />
+          </aside>
+        )}
+      </div>
+
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
         {showNudge && !open && <Nudge onOpen={openPanel} />}
 
         <div className="relative">
