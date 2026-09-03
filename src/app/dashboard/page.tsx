@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { SummaryCards } from "./SummaryCards";
 import { OverviewTabs } from "./OverviewTabs";
-import { AgentPanel } from "./AgentPanel";
+import { OverviewLayout } from "./OverviewLayout";
 import { ForecastedSpendChart } from "./ForecastedSpendChart";
 import { SpendByModelChart } from "./charts/SpendByModelChart";
 import { SpendByProviderChart } from "./charts/SpendByProviderChart";
@@ -80,8 +80,8 @@ export default async function DashboardPage({
           </Link>
         </Card>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-8">
+        <div className="mt-6">
+          <OverviewLayout spendWithAnomalies={spendWithAnomalies}>
             <SummaryCards summary={computeSummary(rows)} />
 
             <section>
@@ -121,11 +121,7 @@ export default async function DashboardPage({
                 </Card>
               </section>
             </div>
-          </div>
-
-          <aside className="lg:sticky lg:top-8 lg:h-fit">
-            <AgentPanel spendWithAnomalies={spendWithAnomalies} />
-          </aside>
+          </OverviewLayout>
         </div>
       )}
     </div>
