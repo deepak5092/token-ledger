@@ -9,6 +9,13 @@ import { cn } from "@/lib/cn";
 const NUDGE_DELAY_MS = 3500;
 const NUDGE_AUTO_HIDE_MS = 6000;
 
+// Fires 3 pulses, one every 10s starting right at page load, then stops --
+// not an infinite animate-ping loop. Fresh on every visit since this is
+// plain component state with no persistence, exactly like the nudge above.
+const PULSE_INTERVAL_MS = 10000;
+const PULSE_VISIBLE_MS = 1000; // matches Tailwind's animate-ping cycle length
+const PULSE_COUNT = 3;
+
 // One-time nudge toward the toggle button: fires once per page load (only
 // while the panel is still closed), then hides itself again if ignored so
 // it doesn't sit there forever. Its own mount -> rAF -> class-flip is a
@@ -49,6 +56,7 @@ export function OverviewLayout({
 }) {
   const [open, setOpen] = useState(false);
   const [showNudge, setShowNudge] = useState(false);
+  const [pulseOn, setPulseOn] = useState(false);
 
   useEffect(() => {
     if (open) return;
@@ -61,6 +69,17 @@ export function OverviewLayout({
     const hideTimer = setTimeout(() => setShowNudge(false), NUDGE_AUTO_HIDE_MS);
     return () => clearTimeout(hideTimer);
   }, [showNudge]);
+
+  useEffect(() => {
+    if (open) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    for (let i = 0; i < PULSE_COUNT; i++) {
+      const delay = i * PULSE_INTERVAL_MS;
+      timers.push(setTimeout(() => setPulseOn(true), delay));
+      timers.push(setTimeout(() => setPulseOn(false), delay + PULSE_VISIBLE_MS));
+    }
+    return () => timers.forEach(clearTimeout);
+  }, [open]);
 
   const openPanel = () => {
     setOpen(true);
@@ -88,7 +107,7 @@ export function OverviewLayout({
         {showNudge && !open && <Nudge onOpen={openPanel} />}
 
         <div className="relative">
-          {!open && (
+          {pulseOn && !open && (
             <span
               className="absolute inset-0 animate-ping rounded-full bg-accent opacity-75"
               aria-hidden
