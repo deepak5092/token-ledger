@@ -97,8 +97,8 @@ export function OverviewLayout({
         <div className="space-y-8">{children}</div>
 
         {open && (
-          <aside className="lg:sticky lg:top-8 lg:h-fit">
-            <AgentPanel spendWithAnomalies={spendWithAnomalies} />
+          <aside className="lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)]">
+            <AgentPanel spendWithAnomalies={spendWithAnomalies} onClose={() => setOpen(false)} />
           </aside>
         )}
       </div>

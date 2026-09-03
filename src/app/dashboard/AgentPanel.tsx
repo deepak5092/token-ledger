@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentType } from "react";
-import { Sparkles, AlertTriangle, HelpCircle, Send, Bot } from "lucide-react";
+import { Sparkles, AlertTriangle, HelpCircle, Send, Bot, X } from "lucide-react";
 import { useAgentChat, type AgentAction } from "@/lib/agent/useAgentChat";
 import { Input } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
@@ -60,7 +60,19 @@ function buildSuggestions(spendWithAnomalies: AnomalyPoint[]): Suggestion[] {
 // replacing the previous three separate cards (Weekly Briefing, Anomalies,
 // Quick question) -- same idea as Samsara's/most platforms' AI assistant
 // panel: one conversation, suggestions that disappear once it starts.
-export function AgentPanel({ spendWithAnomalies }: { spendWithAnomalies: AnomalyPoint[] }) {
+// Styled and structured like this app's other modals (ConnectModal,
+// AuthOverlay) -- rounded-xl, shadow-xl, an explicit close button in the
+// header -- even though it's docked in the page grid rather than an
+// overlay; fills its container's full height (flex column: header /
+// scrollable body / input, each shrink-0 except the body) instead of
+// sizing to content and leaving dead space below a short conversation.
+export function AgentPanel({
+  spendWithAnomalies,
+  onClose,
+}: {
+  spendWithAnomalies: AnomalyPoint[];
+  onClose?: () => void;
+}) {
   const { messages, error, pending, draft, run } = useAgentChat();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -80,14 +92,26 @@ export function AgentPanel({ spendWithAnomalies }: { spendWithAnomalies: Anomaly
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-200 shadow-sm dark:border-zinc-800">
-      <div className="flex items-center gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground">
-        <Bot className="h-4 w-4" aria-hidden />
-        Assistant
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 shadow-xl dark:border-zinc-800">
+      <div className="flex shrink-0 items-center justify-between gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground">
+        <div className="flex items-center gap-2">
+          <Bot className="h-4 w-4" aria-hidden />
+          Assistant
+        </div>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close AI insights"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-accent-foreground/80 transition-colors hover:bg-black/10 hover:text-accent-foreground"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        )}
       </div>
 
-      <div className="bg-white dark:bg-zinc-950">
-        <div className="max-h-[26rem] overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-zinc-950">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {!hasConversation ? (
             <>
               <h2 className="text-base font-semibold text-foreground">
@@ -143,7 +167,7 @@ export function AgentPanel({ spendWithAnomalies }: { spendWithAnomalies: Anomaly
 
         <form
           onSubmit={onSubmit}
-          className="flex gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
+          className="flex shrink-0 gap-2 border-t border-zinc-200 p-3 dark:border-zinc-800"
         >
           <Input
             type="text"
