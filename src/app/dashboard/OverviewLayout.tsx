@@ -88,24 +88,17 @@ export function OverviewLayout({
 
   return (
     <div className="relative">
-      <div
-        className={cn(
-          "grid grid-cols-1 gap-8 transition-[grid-template-columns] duration-200",
-          // clamp(), not a fixed px guess: scales with viewport width
-          // between a floor (never too cramped to read) and a ceiling
-          // (never absurdly wide on large screens) instead of needing to
-          // be re-picked by hand every time content changes.
-          open && "lg:grid-cols-[1fr_clamp(320px,28vw,480px)]",
-        )}
-      >
-        <div className="space-y-8">{children}</div>
+      <div className="space-y-8">{children}</div>
 
-        {open && (
-          <aside className="lg:sticky lg:top-8 lg:self-start">
-            <AgentPanel spendWithAnomalies={spendWithAnomalies} onClose={() => setOpen(false)} />
-          </aside>
-        )}
-      </div>
+      {/* Fixed to the viewport, not docked in the page grid -- like
+          Snowflake's own floating chat widget, it stays anchored to the
+          same corner while the page scrolls underneath it instead of
+          drifting away with a `sticky` container. */}
+      {open && (
+        <div className="fixed bottom-6 right-6 z-40 w-[min(400px,calc(100vw-3rem))]">
+          <AgentPanel spendWithAnomalies={spendWithAnomalies} onClose={() => setOpen(false)} />
+        </div>
+      )}
 
       {/* Hidden while open -- the panel's own header has a close button now,
           so a second floating close control would just be redundant. */}

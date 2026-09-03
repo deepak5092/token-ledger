@@ -93,10 +93,10 @@ export function AgentPanel({
 
   return (
     // max-h caps growth for a long conversation (internal scroll past this,
-    // not unbounded growth) -- 4rem = 2x OverviewLayout's `lg:top-8` sticky
-    // offset (2rem), so the gap above and below the panel stays symmetric
-    // instead of an unexplained magic number.
-    <div className="flex max-h-[calc(100vh-4rem)] flex-col overflow-hidden rounded-xl border border-zinc-200 shadow-xl dark:border-zinc-800">
+    // not unbounded growth) -- 3rem = the fixed `bottom-6` offset (1.5rem)
+    // OverviewLayout anchors this panel with, doubled so the gap above and
+    // below stays symmetric instead of an unexplained magic number.
+    <div className="flex max-h-[calc(100vh-3rem)] flex-col overflow-hidden rounded-xl border border-zinc-200 shadow-xl dark:border-zinc-800">
       <div className="flex shrink-0 items-center justify-between gap-2 bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground">
         <div className="flex items-center gap-2">
           <Bot className="h-4 w-4" aria-hidden />
