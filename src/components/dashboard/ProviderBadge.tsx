@@ -1,4 +1,5 @@
 import { PROVIDER_COLOR, PROVIDER_LABEL } from "@/lib/providers/colors";
+import { ProviderIcon, PROVIDER_ICON_PATH } from "@/components/dashboard/ProviderIcon";
 import { cn } from "@/lib/cn";
 
 export function ProviderBadge({ provider, className }: { provider: string; className?: string }) {
@@ -15,7 +16,11 @@ export function ProviderBadge({ provider, className }: { provider: string; class
       aria-hidden
       title={label}
     >
-      {label.charAt(0)}
+      {PROVIDER_ICON_PATH[provider] ? (
+        <ProviderIcon provider={provider} className="h-3.5 w-3.5" />
+      ) : (
+        label.charAt(0)
+      )}
     </span>
   );
 }
