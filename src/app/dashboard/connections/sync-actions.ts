@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { generateSyntheticBedrockUsage } from "@/lib/ingestion/bedrock-synthetic";
 import { fetchAnthropicUsage } from "@/lib/ingestion/anthropic";
 import { fetchOpenAIUsage } from "@/lib/ingestion/openai";
 import type { NormalizedUsageRecord } from "@/lib/ingestion/types";
@@ -45,27 +44,22 @@ export async function syncConnection(formData: FormData) {
   let records: NormalizedUsageRecord[] = [];
 
   try {
-    if (connection.provider === "bedrock_synthetic") {
-      records = generateSyntheticBedrockUsage(connection.id);
-    } else {
-      if (!connection.vault_secret_id) {
-        throw new Error("No stored key for this connection.");
-      }
-
-      const { data: apiKey, error: decryptError } = await admin.rpc(
-        "decrypt_connection_secret",
-        { p_vault_secret_id: connection.vault_secret_id },
-      );
-
-      if (decryptError || !apiKey) {
-        throw new Error("Could not decrypt the stored key.");
-      }
-
-      records =
-        connection.provider === "anthropic"
-          ? await fetchAnthropicUsage(apiKey as string)
-          : await fetchOpenAIUsage(apiKey as string);
+    if (!connection.vault_secret_id) {
+      throw new Error("No stored key for this connection.");
     }
+
+    const { data: apiKey, error: decryptError } = await admin.rpc("decrypt_connection_secret", {
+      p_vault_secret_id: connection.vault_secret_id,
+    });
+
+    if (decryptError || !apiKey) {
+      throw new Error("Could not decrypt the stored key.");
+    }
+
+    records =
+      connection.provider === "anthropic"
+        ? await fetchAnthropicUsage(apiKey as string)
+        : await fetchOpenAIUsage(apiKey as string);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Sync failed.";
     redirect(`/dashboard/connections?error=${encodeURIComponent(message)}`);

@@ -28,7 +28,7 @@ export async function addConnection(formData: FormData) {
   }
   const provider = providerRaw;
 
-  if (provider !== "bedrock_synthetic" && !apiKey) {
+  if (!apiKey) {
     redirect(
       `/dashboard/connections?error=${encodeURIComponent("API key is required for this provider.")}`,
     );
@@ -46,20 +46,17 @@ export async function addConnection(formData: FormData) {
     redirect(`/dashboard/connections?error=${encodeURIComponent(validation.error)}`);
   }
 
-  let vaultSecretId: string | null = null;
-  if (provider !== "bedrock_synthetic") {
-    const { data: secretId, error: vaultError } = await supabase.rpc(
-      "create_connection_secret",
-      { p_secret: apiKey, p_name: `${user.id}:${provider}:${Date.now()}` },
-    );
+  const { data: secretId, error: vaultError } = await supabase.rpc("create_connection_secret", {
+    p_secret: apiKey,
+    p_name: `${user.id}:${provider}:${Date.now()}`,
+  });
 
-    if (vaultError || !secretId) {
-      redirect(
-        `/dashboard/connections?error=${encodeURIComponent("Could not securely store the key. Please try again.")}`,
-      );
-    }
-    vaultSecretId = secretId as string;
+  if (vaultError || !secretId) {
+    redirect(
+      `/dashboard/connections?error=${encodeURIComponent("Could not securely store the key. Please try again.")}`,
+    );
   }
+  const vaultSecretId = secretId as string;
 
   const { error: insertError } = await supabase.from("api_connections").insert({
     user_id: user.id,

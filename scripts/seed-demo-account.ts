@@ -1,7 +1,7 @@
 // One-off script: creates (or reuses) a shared demo account and seeds it
-// with synthetic Anthropic, OpenAI, and Bedrock usage so a visitor can sign
-// in and see a fully populated dashboard without connecting any real
-// provider key. Only touches this one account -- regular signup/connection
+// with synthetic Anthropic and OpenAI usage so a visitor can sign in and
+// see a fully populated dashboard without connecting any real provider
+// key. Only touches this one account -- regular signup/connection
 // flows are completely untouched, and the demo-only synthetic generators
 // (anthropic-synthetic.ts, openai-synthetic.ts) are never imported by app
 // code, only by this script.
@@ -25,7 +25,6 @@
 
 import { createClient } from "@supabase/supabase-js";
 import crypto from "node:crypto";
-import { generateSyntheticBedrockUsage } from "../src/lib/ingestion/bedrock-synthetic";
 import { generateSyntheticAnthropicUsage } from "../src/lib/ingestion/anthropic-synthetic";
 import { generateSyntheticOpenAIUsage } from "../src/lib/ingestion/openai-synthetic";
 import type { NormalizedUsageRecord } from "../src/lib/ingestion/types";
@@ -116,10 +115,6 @@ async function seedUsage(connectionId: string, records: NormalizedUsageRecord[])
 async function main() {
   console.log("Seeding demo account...\n");
   const userId = await getOrCreateDemoUser();
-
-  console.log("\nBedrock (synthetic):");
-  const bedrockId = await getOrCreateConnection(userId, "bedrock_synthetic");
-  await seedUsage(bedrockId, generateSyntheticBedrockUsage(bedrockId));
 
   console.log("\nAnthropic (demo-only synthetic):");
   const anthropicId = await getOrCreateConnection(userId, "anthropic");

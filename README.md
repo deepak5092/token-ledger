@@ -3,9 +3,7 @@
 A multi-tenant AI token spend tracker: connect your own Anthropic/OpenAI
 API keys, see a cached dashboard of spend, get forecasts, run a
 "switch model" savings simulator, and ask a tool-using agent about your
-spend. A synthetic AWS Bedrock connector demonstrates extending the
-pattern to a provider not covered by the inspiration for this project
-(Ramp's AI Token Spend Management).
+spend. Inspired by Ramp's AI Token Spend Management.
 
 See [`docs/ramp-project-implementation-phases.md`](./docs/ramp-project-implementation-phases.md)
 for the full phased build plan and [`docs/architecture.md`](./docs/architecture.md)
@@ -41,9 +39,7 @@ use) for the agent features.
 "Sync now" to backfill `usage_records`. Anthropic and OpenAI both require an
 **org/Admin-level API key** for usage-reporting access, not a regular
 per-project key. The connect form validates against each provider's usage
-endpoint and will reject a regular key with a message saying so. The
-Bedrock connector needs no real key; syncing it generates a realistic
-synthetic dataset instead (`src/lib/ingestion/bedrock-synthetic.ts`).
+endpoint and will reject a regular key with a message saying so.
 
 The real Anthropic/OpenAI ingestion code
 (`src/lib/ingestion/{anthropic,openai}.ts`) is built against each
@@ -55,13 +51,13 @@ easy.
 ## Demo account
 
 `npm run seed:demo` creates (or reuses) a shared demo account and seeds it
-with synthetic Anthropic, OpenAI, and Bedrock usage, so a visitor can sign
-in without connecting a real key. It's the same synthetic-data machinery
-Bedrock connections use in production (`src/lib/ingestion/synthetic.ts`),
-plus two demo-only generators (`anthropic-synthetic.ts`, `openai-synthetic.ts`)
-that are never imported by the app's real connect-a-provider flow, only
-by `scripts/seed-demo-account.ts`. Safe to re-run: it reuses the existing
-user/connections and upserts usage records instead of duplicating them.
+with synthetic Anthropic and OpenAI usage, so a visitor can sign in
+without connecting a real key. It uses two demo-only generators
+(`anthropic-synthetic.ts`, `openai-synthetic.ts`, built on the shared
+random-walk machinery in `synthetic.ts`) that are never imported by the
+app's real connect-a-provider flow, only by `scripts/seed-demo-account.ts`.
+Safe to re-run: it reuses the existing user/connections and upserts usage
+records instead of duplicating them.
 
 Credentials are set at the top of `scripts/seed-demo-account.ts` and
 deliberately **not** published here or on the landing page: the demo

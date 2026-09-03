@@ -5,11 +5,9 @@
 export const PROVIDER_COLOR: Record<string, string> = {
   anthropic: "var(--chart-series-1)",
   openai: "var(--chart-series-2)",
-  bedrock_synthetic: "var(--chart-series-3)",
 };
 
 export const PROVIDER_LABEL: Record<string, string> = {
   anthropic: "Anthropic",
   openai: "OpenAI",
-  bedrock_synthetic: "Bedrock (synthetic)",
 };

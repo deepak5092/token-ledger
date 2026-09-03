@@ -4,11 +4,8 @@
 // pricing page, verified 2026-08-31:
 //   - Anthropic: https://www.anthropic.com/pricing (current first-party models only)
 //   - OpenAI: https://developers.openai.com/api/docs/pricing
-// Scoped to Anthropic + OpenAI (the two providers with real, non-synthetic
-// ingestion): the Bedrock synthetic connector generates its own
-// already-labeled-fake pricing in bedrock-synthetic.ts and isn't covered
-// here. A model not in this table (retired, or too new) has no cost
-// estimate available; callers should treat that as "unknown", not $0.
+// A model not in this table (retired, or too new) has no cost estimate
+// available; callers should treat that as "unknown", not $0.
 
 export type ModelPricing = {
   model: string;

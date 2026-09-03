@@ -6,9 +6,9 @@ create extension if not exists pgcrypto;
 create table api_connections (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users not null,
-  provider text not null check (provider in ('anthropic', 'openai', 'bedrock_synthetic')),
+  provider text not null check (provider in ('anthropic', 'openai')),
   label text,
-  vault_secret_id uuid,             -- reference into Supabase Vault; null for bedrock_synthetic
+  vault_secret_id uuid,             -- reference into Supabase Vault (encrypted key)
   created_at timestamptz default now(),
   last_synced_at timestamptz
 );

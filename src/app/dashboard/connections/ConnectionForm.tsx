@@ -34,25 +34,23 @@ export function ConnectionForm() {
           <Input id="label" name="label" type="text" placeholder="e.g. Production key" />
         </div>
 
-        {provider !== "bedrock_synthetic" && (
-          <div>
-            <Label htmlFor="apiKey">
-              {provider === "anthropic" ? "Anthropic Admin API key" : "OpenAI Admin API key"}
-            </Label>
-            <Input
-              id="apiKey"
-              name="apiKey"
-              type="password"
-              required
-              autoComplete="off"
-              className="font-mono text-sm"
-            />
-            <p className="mt-1 text-xs text-zinc-500">
-              Needs usage-reporting access: an org/Admin-level key, not a
-              regular per-project API key.
-            </p>
-          </div>
-        )}
+        <div>
+          <Label htmlFor="apiKey">
+            {provider === "anthropic" ? "Anthropic Admin API key" : "OpenAI Admin API key"}
+          </Label>
+          <Input
+            id="apiKey"
+            name="apiKey"
+            type="password"
+            required
+            autoComplete="off"
+            className="font-mono text-sm"
+          />
+          <p className="mt-1 text-xs text-zinc-500">
+            Needs usage-reporting access: an org/Admin-level key, not a
+            regular per-project API key.
+          </p>
+        </div>
 
         <Button type="submit" variant="primary" className="w-full">
           Connect

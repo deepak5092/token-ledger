@@ -26,10 +26,9 @@ function seedFromString(value: string): number {
   return seed;
 }
 
-// Random-walk-plus-weekly-seasonality generator shared by every synthetic
-// connector (the general-purpose Bedrock one in bedrock-synthetic.ts, and
-// the demo-account-only Anthropic/OpenAI ones), so they all produce the
-// same realistic shape of data from one tested implementation instead of
+// Random-walk-plus-weekly-seasonality generator shared by the demo-account-
+// only Anthropic/OpenAI synthetic connectors, so they both produce the same
+// realistic shape of data from one tested implementation instead of
 // drifting copies.
 export function generateSyntheticUsage(
   connectionId: string,

@@ -36,14 +36,14 @@ so later phases build against a stable target.
 
 ## User flow
 A visitor lands on a public demo page backed by pre-loaded synthetic
-Bedrock-style data (no signup required) so the product can be evaluated
-without an account; from there they can sign up with email/password, land
-on onboarding, connect a real Anthropic/OpenAI key (or add another
-synthetic Bedrock connection), click "Sync now" to backfill usage, and see
-their own dashboard, forecast, anomaly flags, and savings simulator driven
-entirely by cached `usage_records`, with an agent panel that answers
-questions about their spend using the same cached data via tool calls.
-Sync is manual for this build; scheduled refresh is backlog.
+usage data (no signup required) so the product can be evaluated without
+an account; from there they can sign up with email/password, land on
+onboarding, connect a real Anthropic/OpenAI key, click "Sync now" to
+backfill usage, and see their own dashboard, forecast, anomaly flags,
+and savings simulator driven entirely by cached `usage_records`, with an
+agent panel that answers questions about their spend using the same
+cached data via tool calls. Sync is manual for this build; scheduled
+refresh is backlog.
 
 ## Auth
 - Email/password only (no OAuth): fastest to stand up, no external app
@@ -51,7 +51,7 @@ Sync is manual for this build; scheduled refresh is backlog.
 
 ## Demo mode
 - In scope for this build. A dedicated public route serves a fixed
-  synthetic Bedrock-style dataset, no login wall.
+  synthetic usage dataset, no login wall.
 - The demo's briefing agent makes **live** Claude API calls (not a
   pre-cached response) so visitors see it actually work, but is protected
   by strict rate limiting (per-IP + global daily cap) since it spends the

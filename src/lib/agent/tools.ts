@@ -47,7 +47,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "get_spend_by_provider",
     description:
-      "Total spend in USD grouped by provider (anthropic / openai / bedrock_synthetic), for an optional date range.",
+      "Total spend in USD grouped by provider (anthropic / openai), for an optional date range.",
     input_schema: dateRangeSchema,
   },
   {

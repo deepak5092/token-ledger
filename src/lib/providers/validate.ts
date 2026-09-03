@@ -11,8 +11,6 @@ export async function validateProviderKey(
   apiKey: string,
 ): Promise<ValidationResult> {
   switch (provider) {
-    case "bedrock_synthetic":
-      return { ok: true };
     case "anthropic":
       return validateAnthropicKey(apiKey);
     case "openai":

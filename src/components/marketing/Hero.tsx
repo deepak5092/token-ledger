@@ -15,10 +15,10 @@ export function Hero() {
             Where did your AI budget actually go?
           </h1>
           <p className="mt-4 max-w-md text-lg text-zinc-600 dark:text-zinc-400">
-            Token Ledger pulls real usage from Anthropic, OpenAI, and AWS
-            Bedrock into one cached dashboard, forecasts what&apos;s next,
-            flags the days that break the pattern, and lets an agent explain
-            any of it back to you in plain language.
+            Token Ledger pulls real usage from Anthropic and OpenAI into one
+            cached dashboard, forecasts what&apos;s next, flags the days
+            that break the pattern, and lets an agent explain any of it
+            back to you in plain language.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <button type="button" onClick={openSignup} className={buttonVariants({ size: "lg" })}>

@@ -6,7 +6,7 @@ const FEATURES = [
     icon: Plug,
     title: "Connect real usage",
     description:
-      "Anthropic and OpenAI usage-reporting keys, or a synthetic Bedrock feed if you'd rather not paste a key at all.",
+      "Anthropic and OpenAI usage-reporting keys, encrypted at rest and decrypted only server-side.",
   },
   {
     icon: TrendingUp,
