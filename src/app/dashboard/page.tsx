@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { SummaryCards } from "./SummaryCards";
 import { OverviewTabs } from "./OverviewTabs";
+import { DateRangePicker } from "./DateRangePicker";
 import { OverviewLayout } from "./OverviewLayout";
 import { ForecastedSpendChart } from "./ForecastedSpendChart";
 import { SpendByModelChart } from "./charts/SpendByModelChart";
@@ -18,12 +19,45 @@ import {
 } from "@/lib/dashboard/aggregate";
 import { detectAnomalies } from "@/lib/dashboard/anomaly";
 
+const PRESET_DAYS = new Set(["7", "30", "90"]);
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+const toISODate = (d: Date) => d.toISOString().slice(0, 10);
+
+function resolveRange(rangeParam?: string, startParam?: string, endParam?: string) {
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+
+  if (
+    rangeParam === "custom" &&
+    startParam &&
+    endParam &&
+    ISO_DATE.test(startParam) &&
+    ISO_DATE.test(endParam)
+  ) {
+    let start = new Date(`${startParam}T00:00:00Z`);
+    let end = new Date(`${endParam}T00:00:00Z`);
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+      if (start > end) [start, end] = [end, start];
+      if (end > today) end = today;
+      return { range: "custom" as const, start, end };
+    }
+  }
+
+  const days = rangeParam && PRESET_DAYS.has(rangeParam) ? Number(rangeParam) : 30;
+  const end = today;
+  const start = new Date(today);
+  start.setUTCDate(start.getUTCDate() - (days - 1));
+  return { range: String(days) as "7" | "30" | "90", start, end };
+}
+
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connection?: string }>;
+  searchParams: Promise<{ connection?: string; range?: string; start?: string; end?: string }>;
 }) {
-  const { connection: connectionParam } = await searchParams;
+  const { connection: connectionParam, range: rangeParam, start: startParam, end: endParam } =
+    await searchParams;
   const supabase = await createClient();
 
   const { data: connections } = await supabase
@@ -38,9 +72,24 @@ export default async function DashboardPage({
     ? connectionParam
     : undefined;
 
+  const { range, start: rangeStart, end: rangeEnd } = resolveRange(
+    rangeParam,
+    startParam,
+    endParam,
+  );
+  const periodDays = Math.round((rangeEnd.getTime() - rangeStart.getTime()) / 86_400_000) + 1;
+  const priorStart = new Date(rangeStart);
+  priorStart.setUTCDate(priorStart.getUTCDate() - periodDays);
+  const periodLabel = range === "custom" ? "vs prior period" : `vs prior ${range} days`;
+
+  // Fetch the selected range plus an equal-length lookback so
+  // computeSummary can still compare against the prior period; charts get
+  // just the selected-range slice of this (see chartRows below).
   let usageQuery = supabase
     .from("usage_records")
     .select("date, model, cost_usd, input_tokens, output_tokens, api_connections(provider)")
+    .gte("date", toISODate(priorStart))
+    .lte("date", toISODate(rangeEnd))
     .order("date", { ascending: true });
   if (selectedConnectionId) {
     usageQuery = usageQuery.eq("connection_id", selectedConnectionId);
@@ -48,14 +97,29 @@ export default async function DashboardPage({
   const { data: usageRows } = await usageQuery.returns<UsageRow[]>();
 
   const rows = usageRows ?? [];
+  const rangeStartStr = toISODate(rangeStart);
+  const rangeEndStr = toISODate(rangeEnd);
+  const chartRows = rows.filter((r) => r.date >= rangeStartStr && r.date <= rangeEndStr);
+
   const hasConnections = (connections?.length ?? 0) > 0;
-  const hasUsage = rows.length > 0;
-  const daily = dailySpend(rows);
+  const hasUsage = chartRows.length > 0;
+  const daily = dailySpend(chartRows);
   const spendWithAnomalies = detectAnomalies(daily);
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-foreground">Overview</h1>
+        {hasConnections && (
+          <DateRangePicker
+            key={`${range}-${rangeStartStr}-${rangeEndStr}`}
+            range={range}
+            start={range === "custom" ? rangeStartStr : undefined}
+            end={range === "custom" ? rangeEndStr : undefined}
+            connectionId={selectedConnectionId}
+          />
+        )}
+      </div>
 
       {hasConnections && (
         <div className="mt-4">
@@ -73,7 +137,7 @@ export default async function DashboardPage({
       ) : !hasUsage ? (
         <Card className="mt-8 max-w-md text-center">
           <p className="text-zinc-700 dark:text-zinc-300">
-            No usage data yet. Sync a connection to populate your dashboard.
+            No usage data in this range. Try a wider range or sync a connection.
           </p>
           <Link href="/dashboard/connections" className={buttonVariants({ className: "mt-3" })}>
             Go sync a connection
@@ -82,7 +146,10 @@ export default async function DashboardPage({
       ) : (
         <div className="mt-6">
           <OverviewLayout spendWithAnomalies={spendWithAnomalies}>
-            <SummaryCards summary={computeSummary(rows)} />
+            <SummaryCards
+              summary={computeSummary(rows, { start: rangeStart, end: rangeEnd })}
+              periodLabel={periodLabel}
+            />
 
             <section>
               <Suspense
@@ -105,7 +172,7 @@ export default async function DashboardPage({
                   Spend by model
                 </h2>
                 <Card className="mt-2">
-                  <SpendByModelChart data={spendByModel(rows)} />
+                  <SpendByModelChart data={spendByModel(chartRows)} />
                 </Card>
               </section>
 
@@ -115,7 +182,7 @@ export default async function DashboardPage({
                 </h2>
                 <Card className="mt-2">
                   {(() => {
-                    const { data, providers } = weeklySpendByProvider(rows);
+                    const { data, providers } = weeklySpendByProvider(chartRows);
                     return <SpendByProviderChart data={data} providers={providers} />;
                   })()}
                 </Card>

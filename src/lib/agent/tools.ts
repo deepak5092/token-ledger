@@ -108,7 +108,11 @@ export async function executeAgentTool(
     case "compare_to_previous_period": {
       const days = typeof input.days === "number" ? input.days : 30;
       const rows = await fetchUsage(supabase);
-      return computeSummary(rows, days);
+      const end = new Date();
+      end.setUTCHours(0, 0, 0, 0);
+      const start = new Date(end);
+      start.setUTCDate(start.getUTCDate() - (days - 1));
+      return computeSummary(rows, { start, end });
     }
     case "get_usage_for_date": {
       const date = typeof input.date === "string" ? input.date : undefined;

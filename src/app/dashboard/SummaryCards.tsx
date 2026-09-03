@@ -10,7 +10,7 @@ const compactNumber = (n: number) =>
 
 const truncate = (s: string, max = 32) => (s.length > max ? `${s.slice(0, max - 1)}…` : s);
 
-function Delta({ pctChange }: { pctChange: number | null }) {
+function Delta({ pctChange, periodLabel }: { pctChange: number | null; periodLabel: string }) {
   const Icon = pctChange === null ? Minus : pctChange > 0 ? TrendingUp : TrendingDown;
   return (
     <p
@@ -24,12 +24,18 @@ function Delta({ pctChange }: { pctChange: number | null }) {
     >
       <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
       {pctChange === null ? "-" : `${pctChange > 0 ? "+" : ""}${pctChange}%`}
-      <span className="font-normal text-zinc-500">vs prior 30 days</span>
+      <span className="font-normal text-zinc-500">{periodLabel}</span>
     </p>
   );
 }
 
-export function SummaryCards({ summary }: { summary: SummaryStats }) {
+export function SummaryCards({
+  summary,
+  periodLabel,
+}: {
+  summary: SummaryStats;
+  periodLabel: string;
+}) {
   const { totalThisPeriod, pctChange, mostExpensiveModel, totalTokens, tokensPctChange, avgCostPerDay } =
     summary;
 
@@ -38,10 +44,10 @@ export function SummaryCards({ summary }: { summary: SummaryStats }) {
       <Card>
         <div className="flex items-center gap-2 text-xs text-zinc-500">
           <DollarSign className="h-3.5 w-3.5" aria-hidden />
-          Total spend, last 30 days
+          Total spend
         </div>
         <p className="mt-1 text-2xl font-semibold text-foreground">{currency(totalThisPeriod)}</p>
-        <Delta pctChange={pctChange} />
+        <Delta pctChange={pctChange} periodLabel={periodLabel} />
       </Card>
 
       <Card>
@@ -50,7 +56,7 @@ export function SummaryCards({ summary }: { summary: SummaryStats }) {
           Total token usage
         </div>
         <p className="mt-1 text-2xl font-semibold text-foreground">{compactNumber(totalTokens)}</p>
-        <Delta pctChange={tokensPctChange} />
+        <Delta pctChange={tokensPctChange} periodLabel={periodLabel} />
       </Card>
 
       <Card>
@@ -59,7 +65,7 @@ export function SummaryCards({ summary }: { summary: SummaryStats }) {
           Average cost per day
         </div>
         <p className="mt-1 text-2xl font-semibold text-foreground">{currency(avgCostPerDay)}</p>
-        <Delta pctChange={pctChange} />
+        <Delta pctChange={pctChange} periodLabel={periodLabel} />
       </Card>
 
       <Card>

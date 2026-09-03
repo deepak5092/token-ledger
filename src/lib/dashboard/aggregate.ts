@@ -98,38 +98,56 @@ function pctChangeOf(current: number, previous: number): number | null {
   return Math.round(((current - previous) / previous) * 1000) / 10;
 }
 
-export function computeSummary(rows: UsageRow[], periodDays = 30): SummaryStats {
-  const today = new Date();
-  const cutoff = new Date(today);
-  cutoff.setUTCDate(cutoff.getUTCDate() - periodDays);
-  const prevCutoff = new Date(cutoff);
-  prevCutoff.setUTCDate(prevCutoff.getUTCDate() - periodDays);
+// `range` is inclusive on both ends. The "vs prior period" comparison is
+// always the same number of days immediately before `start` -- a 7-day
+// range compares against the 7 days before it, a custom 42-day range
+// against the 42 days before that, etc. -- so `rows` needs to cover both
+// windows (the caller is responsible for fetching that wider span).
+export function computeSummary(
+  rows: UsageRow[],
+  range: { start: Date; end: Date },
+): SummaryStats {
+  const { start, end } = range;
+  const periodDays = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
+  const priorStart = new Date(start);
+  priorStart.setUTCDate(priorStart.getUTCDate() - periodDays);
+  const priorEnd = new Date(start);
+  priorEnd.setUTCDate(priorEnd.getUTCDate() - 1);
 
   let totalThisPeriod = 0;
   let totalPreviousPeriod = 0;
   let tokensThisPeriod = 0;
   let tokensPreviousPeriod = 0;
+  const modelTotalsThisPeriod = new Map<string, number>();
 
   for (const r of rows) {
     const d = new Date(`${r.date}T00:00:00Z`);
     const tokens = (r.input_tokens ?? 0) + (r.output_tokens ?? 0);
-    if (d >= cutoff) {
+    if (d >= start && d <= end) {
       totalThisPeriod += r.cost_usd;
       tokensThisPeriod += tokens;
-    } else if (d >= prevCutoff) {
+      modelTotalsThisPeriod.set(r.model, (modelTotalsThisPeriod.get(r.model) ?? 0) + r.cost_usd);
+    } else if (d >= priorStart && d <= priorEnd) {
       totalPreviousPeriod += r.cost_usd;
       tokensPreviousPeriod += tokens;
     }
   }
 
   const pctChange = pctChangeOf(totalThisPeriod, totalPreviousPeriod);
-  const modelTotals = spendByModel(rows);
+  let mostExpensiveModel: string | null = null;
+  let mostExpensiveModelCost = -Infinity;
+  for (const [model, cost] of modelTotalsThisPeriod) {
+    if (cost > mostExpensiveModelCost) {
+      mostExpensiveModel = model;
+      mostExpensiveModelCost = cost;
+    }
+  }
 
   return {
     totalThisPeriod: Math.round(totalThisPeriod * 100) / 100,
     totalPreviousPeriod: Math.round(totalPreviousPeriod * 100) / 100,
     pctChange,
-    mostExpensiveModel: modelTotals[0]?.model ?? null,
+    mostExpensiveModel,
     totalTokens: tokensThisPeriod,
     tokensPctChange: pctChangeOf(tokensThisPeriod, tokensPreviousPeriod),
     // Same numerator/denominator ratio as pctChange (both totals divided by
