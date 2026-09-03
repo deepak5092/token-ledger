@@ -1,18 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 import { PROVIDERS, type Provider } from "@/lib/providers/types";
 import { addConnection } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { Label, Input, Select } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
+import { Alert } from "@/components/ui/Alert";
 
-export function ConnectionForm() {
+function ConnectButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" variant="primary" className="w-full" disabled={pending}>
+      {pending ? "Connecting…" : "Connect"}
+    </Button>
+  );
+}
+
+export function ConnectionForm({ error }: { error?: string }) {
   const [provider, setProvider] = useState<Provider>("anthropic");
 
   return (
-    <Card>
-      <form action={addConnection} className="space-y-4">
+    <>
+      {error && <Alert variant="error">{error}</Alert>}
+      <form action={addConnection} className="mt-4 space-y-4">
         <div>
           <Label htmlFor="provider">Provider</Label>
           <Select
@@ -52,10 +63,8 @@ export function ConnectionForm() {
           </p>
         </div>
 
-        <Button type="submit" variant="primary" className="w-full">
-          Connect
-        </Button>
+        <ConnectButton />
       </form>
-    </Card>
+    </>
   );
 }

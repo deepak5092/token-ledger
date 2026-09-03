@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { ConnectionForm } from "./ConnectionForm";
+import { ConnectModal } from "./ConnectModal";
 import { removeConnection } from "./actions";
-import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { ProviderBadge } from "@/components/dashboard/ProviderBadge";
 import { PROVIDER_LABEL } from "@/lib/providers/colors";
@@ -54,7 +53,10 @@ export default async function ConnectionsPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Connections</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-foreground">Connections</h1>
+        <ConnectModal error={error} />
+      </div>
 
       <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
         This is a demo project, not a security-audited product. Keys are
@@ -64,16 +66,6 @@ export default async function ConnectionsPage({
         schedule — there&apos;s no manual sync button. Use a scoped,
         rotatable, low-spend key wherever your provider supports it.
       </p>
-
-      {error && (
-        <Alert variant="error" className="mt-4 max-w-2xl">
-          {error}
-        </Alert>
-      )}
-
-      <div className="mt-6 max-w-md">
-        <ConnectionForm />
-      </div>
 
       <div className="mt-8 overflow-x-auto">
         {connections?.length ? (
