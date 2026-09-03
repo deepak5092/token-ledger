@@ -59,12 +59,12 @@ export default async function ConnectionsPage({
       </div>
 
       <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-        This is a demo project, not a security-audited product. Keys are
-        encrypted via Supabase Vault and only ever decrypted server-side;
-        never sent to your browser. Usage data and key details (name,
-        status, owner) refresh automatically in the background on a
-        schedule — there&apos;s no manual sync button. Use a scoped,
-        rotatable, low-spend key wherever your provider supports it.
+        This is a demo project, not something that&apos;s been security
+        audited. Your API keys are encrypted and only ever unlocked on our
+        server, never sent to your browser. Your usage data and key details
+        update automatically in the background, so there&apos;s nothing to
+        sync by hand. If your provider allows it, use a key with limited
+        access and a low spending limit, just to be safe.
       </p>
 
       <div className="mt-8 overflow-x-auto">
