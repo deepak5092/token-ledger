@@ -8,6 +8,7 @@ import {
   Plug,
   Calculator,
   MessagesSquare,
+  BookOpen,
   LogOut,
   Menu,
   X,
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/connections", label: "Connections", icon: Plug },
   { href: "/dashboard/simulator", label: "Simulator", icon: Calculator },
   { href: "/dashboard/agent", label: "Ask agent", icon: MessagesSquare },
+  { href: "/dashboard/learn-more", label: "Learn more", icon: BookOpen },
 ];
 
 const EXPANDED_WIDTH = "16rem";

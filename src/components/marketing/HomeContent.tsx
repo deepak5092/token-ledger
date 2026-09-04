@@ -1,6 +1,7 @@
 import { SiteHeader } from "@/components/marketing/SiteHeader";
 import { Hero } from "@/components/marketing/Hero";
 import { FeatureGrid } from "@/components/marketing/FeatureGrid";
+import { UpcomingFeatures } from "@/components/marketing/UpcomingFeatures";
 import { TrustSection } from "@/components/marketing/TrustSection";
 import { SiteFooter } from "@/components/marketing/SiteFooter";
 
@@ -13,6 +14,7 @@ export function HomeContent() {
       <SiteHeader />
       <Hero />
       <FeatureGrid />
+      <UpcomingFeatures />
       <TrustSection />
       <SiteFooter />
     </div>

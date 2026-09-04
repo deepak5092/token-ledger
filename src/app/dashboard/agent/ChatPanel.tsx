@@ -21,6 +21,9 @@ const SUGGESTIONS = [
   "Which model cost the most last month?",
   "How does this week compare to last week?",
   "Any anomalies I should know about?",
+  "What's my average spend per day this month?",
+  "Compare spend by provider",
+  "Create a PDF report for the last 30 days",
 ];
 
 export function ChatPanel() {

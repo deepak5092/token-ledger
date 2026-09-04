@@ -36,7 +36,7 @@ const FEATURES = [
     icon: FileSpreadsheet,
     title: "Export exactly what you ask for",
     description:
-      "Tell the agent what you want as a PDF or Excel file -- spend, input tokens, output tokens, or total tokens, by day, by model, or by provider, with a moving average or a two-metric comparison chart -- and it builds that specific file on the spot, not a fixed template.",
+      "Ask for a PDF or Excel file on any metric, grouped by day, model, or provider. Built live for that request, not a fixed template.",
   },
 ];
 
