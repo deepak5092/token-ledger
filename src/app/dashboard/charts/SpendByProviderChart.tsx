@@ -32,6 +32,7 @@ export function SpendByProviderChart({
           width={70}
         />
         <Tooltip
+          cursor={false}
           formatter={(value: unknown) => currency(Number(value ?? 0))}
           contentStyle={{
             background: "var(--chart-surface)",
@@ -59,6 +60,7 @@ export function SpendByProviderChart({
             name={p}
             radius={providers.indexOf(p) === providers.length - 1 ? [3, 3, 0, 0] : undefined}
             isAnimationActive={false}
+            activeBar={{ fillOpacity: 0.75 }}
           />
         ))}
       </BarChart>

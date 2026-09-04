@@ -100,6 +100,7 @@ export function SpendOverTimeChart({ data }: { data: ChartPoint[] }) {
           axisLine={{ stroke: "var(--chart-axis)" }}
           tickLine={false}
           minTickGap={24}
+          padding={{ left: 16, right: 16 }}
         />
         <YAxis
           tick={{ fill: "var(--chart-ink-muted)", fontSize: 12 }}

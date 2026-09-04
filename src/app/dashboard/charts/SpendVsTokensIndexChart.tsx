@@ -72,18 +72,13 @@ export function SpendVsTokensIndexChart({ data }: { data: IndexedPoint[] }) {
           axisLine={{ stroke: "var(--chart-axis)" }}
           tickLine={false}
           minTickGap={24}
+          padding={{ left: 16, right: 16 }}
         />
         <YAxis
           tick={{ fill: "var(--chart-ink-muted)", fontSize: 12 }}
           axisLine={false}
           tickLine={false}
-          width={40}
-          label={{
-            value: "Index (day 1 = 100)",
-            angle: -90,
-            position: "insideLeft",
-            style: { fill: "var(--chart-ink-muted)", fontSize: 11 },
-          }}
+          width={48}
         />
         <Tooltip content={ChartTooltip} />
         <Legend

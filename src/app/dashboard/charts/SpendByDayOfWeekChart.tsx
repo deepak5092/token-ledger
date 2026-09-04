@@ -25,6 +25,7 @@ export function SpendByDayOfWeekChart({ data }: { data: DayOfWeekPoint[] }) {
           width={70}
         />
         <Tooltip
+          cursor={false}
           formatter={(value: unknown) => currency(Number(value ?? 0))}
           contentStyle={{
             background: "var(--chart-surface)",
@@ -40,6 +41,7 @@ export function SpendByDayOfWeekChart({ data }: { data: DayOfWeekPoint[] }) {
           radius={[4, 4, 0, 0]}
           maxBarSize={40}
           isAnimationActive={false}
+          activeBar={{ fillOpacity: 0.75 }}
         />
       </BarChart>
     </ResponsiveContainer>

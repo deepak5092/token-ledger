@@ -35,6 +35,7 @@ export function SpendByModelChart({ data }: { data: ModelSpendPoint[] }) {
           interval={0}
         />
         <Tooltip
+          cursor={false}
           formatter={(value: unknown) => currency(Number(value ?? 0))}
           contentStyle={{
             background: "var(--chart-surface)",
@@ -50,6 +51,7 @@ export function SpendByModelChart({ data }: { data: ModelSpendPoint[] }) {
           radius={[0, 4, 4, 0]}
           maxBarSize={20}
           isAnimationActive={false}
+          activeBar={{ fillOpacity: 0.75 }}
         />
       </BarChart>
     </ResponsiveContainer>

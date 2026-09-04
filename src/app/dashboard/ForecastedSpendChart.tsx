@@ -20,7 +20,7 @@ export async function ForecastedSpendChart({
 
   return (
     <>
-      <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+      <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
         Spend over time
         {!forecast && (
           <span className="ml-2 text-xs font-normal text-zinc-400">

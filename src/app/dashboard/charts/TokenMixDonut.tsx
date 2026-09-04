@@ -30,13 +30,12 @@ export function TokenMixDonut({ split }: { split: TokenSplit }) {
             nameKey="label"
             innerRadius={70}
             outerRadius={100}
-            paddingAngle={2}
             startAngle={90}
             endAngle={-270}
             isAnimationActive={false}
           >
             {data.map((d) => (
-              <Cell key={d.label} fill={COLORS[d.label as keyof typeof COLORS]} stroke="var(--chart-surface)" strokeWidth={2} />
+              <Cell key={d.label} fill={COLORS[d.label as keyof typeof COLORS]} stroke="var(--chart-surface)" strokeWidth={1.5} />
             ))}
           </Pie>
           <Tooltip

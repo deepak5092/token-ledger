@@ -169,7 +169,7 @@ export default async function DashboardPage({
               <Suspense
                 fallback={
                   <>
-                    <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                       Spend over time
                     </h2>
                     <Card className="mt-2 h-[260px] animate-pulse bg-zinc-100 dark:bg-zinc-900" />
@@ -182,7 +182,7 @@ export default async function DashboardPage({
 
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
               <section>
-                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                   Spend by model
                 </h2>
                 <Card className="mt-2">
@@ -191,7 +191,7 @@ export default async function DashboardPage({
               </section>
 
               <section>
-                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                   Spend by provider
                 </h2>
                 <Card className="mt-2">
@@ -204,7 +204,7 @@ export default async function DashboardPage({
             </div>
 
             <section>
-              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                 Tokens over time
               </h2>
               <Card className="mt-2">
@@ -213,8 +213,11 @@ export default async function DashboardPage({
             </section>
 
             <section>
-              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                 Spend vs. tokens
+                <span className="ml-2 text-xs font-normal normal-case tracking-normal text-zinc-400">
+                  (indexed, day 1 = 100)
+                </span>
               </h2>
               <Card className="mt-2">
                 <SpendVsTokensIndexChart data={indexedSpendVsTokens(chartRows)} />
@@ -223,7 +226,7 @@ export default async function DashboardPage({
 
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
               <section>
-                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                   Cumulative spend
                 </h2>
                 <Card className="mt-2">
@@ -232,7 +235,7 @@ export default async function DashboardPage({
               </section>
 
               <section>
-                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                   Cumulative tokens
                 </h2>
                 <Card className="mt-2">
@@ -243,7 +246,7 @@ export default async function DashboardPage({
 
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
               <section>
-                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                   Spend by model
                 </h2>
                 <Card className="mt-2">
@@ -252,7 +255,7 @@ export default async function DashboardPage({
               </section>
 
               <section>
-                <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                   Token mix
                 </h2>
                 <Card className="mt-2">
@@ -262,7 +265,7 @@ export default async function DashboardPage({
             </div>
 
             <section>
-              <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              <h2 className="text-base font-bold uppercase tracking-wide text-foreground">
                 Spend by day of week
               </h2>
               <Card className="mt-2">

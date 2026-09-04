@@ -33,7 +33,6 @@ export function SpendByModelDonut({ data }: { data: DonutSlice[] }) {
           nameKey="label"
           innerRadius={60}
           outerRadius={90}
-          paddingAngle={2}
           isAnimationActive={false}
         >
           {data.map((d, i) => (
@@ -41,7 +40,7 @@ export function SpendByModelDonut({ data }: { data: DonutSlice[] }) {
               key={d.label}
               fill={d.label === "Other" ? OTHER_COLOR : SLICE_COLORS[i % SLICE_COLORS.length]}
               stroke="var(--chart-surface)"
-              strokeWidth={2}
+              strokeWidth={1.5}
             />
           ))}
         </Pie>
