@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { workloadsByModel, type WorkloadUsageRow } from "@/lib/dashboard/simulator";
 import { SimulatorForm } from "./SimulatorForm";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function SimulatorPage() {
   const supabase = await createClient();
@@ -14,7 +15,10 @@ export default async function SimulatorPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Savings simulator</h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-foreground">Savings simulator</h1>
+        <ThemeToggle />
+      </div>
       <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
         See what a workload would cost on a different model. These are
         estimates based on our own pricing list, not your actual bill, so

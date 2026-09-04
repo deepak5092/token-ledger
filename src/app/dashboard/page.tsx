@@ -17,6 +17,7 @@ import { TokenMixDonut } from "./charts/TokenMixDonut";
 import { SpendByDayOfWeekChart } from "./charts/SpendByDayOfWeekChart";
 import { Card } from "@/components/ui/Card";
 import { buttonVariants } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   computeSummary,
   dailySpend,
@@ -124,15 +125,18 @@ export default async function DashboardPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl leading-none font-semibold text-foreground">AI Analytics</h1>
-        {hasConnections && (
-          <DateRangePicker
-            key={`${range}-${rangeStartStr}-${rangeEndStr}`}
-            range={range}
-            start={range === "custom" ? rangeStartStr : undefined}
-            end={range === "custom" ? rangeEndStr : undefined}
-            connectionId={selectedConnectionId}
-          />
-        )}
+        <div className="flex items-center gap-3">
+          {hasConnections && (
+            <DateRangePicker
+              key={`${range}-${rangeStartStr}-${rangeEndStr}`}
+              range={range}
+              start={range === "custom" ? rangeStartStr : undefined}
+              end={range === "custom" ? rangeEndStr : undefined}
+              connectionId={selectedConnectionId}
+            />
+          )}
+          <ThemeToggle />
+        </div>
       </div>
 
       {hasConnections && (

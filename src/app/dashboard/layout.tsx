@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
 import { logout } from "./actions";
 import { SidebarNav } from "@/components/dashboard/SidebarNav";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default async function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   // Middleware already validated the session (a real network round trip to
@@ -21,10 +20,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
           client-ified layout. 16rem matches the sidebar's default
           (expanded) width for the pre-JS/first-paint case. */}
       <main className="lg:[padding-left:var(--sidebar-w,16rem)] lg:transition-[padding-left] lg:duration-200">
-        <div className="mx-auto flex max-w-6xl justify-end px-6 pt-4 lg:px-8 lg:pt-6">
-          <ThemeToggle />
-        </div>
-        <div className="mx-auto max-w-6xl p-6 pt-2 lg:p-8 lg:pt-2">{children}</div>
+        <div className="mx-auto max-w-6xl p-6 lg:p-8">{children}</div>
       </main>
     </div>
   );

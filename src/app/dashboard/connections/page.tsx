@@ -3,6 +3,7 @@ import { ConnectModal } from "./ConnectModal";
 import { removeConnection } from "./actions";
 import { Button } from "@/components/ui/Button";
 import { ProviderBadge } from "@/components/dashboard/ProviderBadge";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { PROVIDER_LABEL } from "@/lib/providers/colors";
 import { cn } from "@/lib/cn";
 
@@ -55,7 +56,10 @@ export default async function ConnectionsPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold text-foreground">Connections</h1>
-        <ConnectModal error={error} />
+        <div className="flex items-center gap-3">
+          <ConnectModal error={error} />
+          <ThemeToggle />
+        </div>
       </div>
 
       <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
