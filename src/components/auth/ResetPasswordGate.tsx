@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/Logo";
 import { buttonVariants } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 
 type Status = "checking" | "ready" | "invalid";
@@ -61,6 +62,9 @@ export function ResetPasswordGate({ error }: { error?: string }) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-6 dark:bg-black">
+      <div className="fixed top-4 right-4 z-40">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm space-y-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
         <Logo />
 
