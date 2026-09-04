@@ -21,11 +21,11 @@ import type { NextConfig } from "next";
 // would additionally close is already small.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
   "style-src 'self' 'unsafe-inline'", // Recharts and a few components set inline style attrs
   "img-src 'self'",
   "font-src 'self'", // next/font self-hosts Geist at build time, no external font CDN
-  "connect-src 'self'",
+  "connect-src 'self' https://vitals.vercel-insights.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
