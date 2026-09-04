@@ -97,18 +97,45 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
     },
   },
   {
-    name: "generate_spend_report",
+    name: "generate_report",
     description:
-      "Generates a downloadable PDF report covering the trailing N days: daily spend, a moving-average trend chart, summary stats, and a cost-vs-tokens trend page (both indexed to a common scale). Call this when the user asks for a report, PDF, or something to read/share. The download link is shown to the user automatically by the UI, so do not repeat the raw URL in your reply -- just briefly confirm what the report covers.",
+      "Generates a downloadable report (PDF or Excel) built live from exactly what the user asked for -- there is no fixed template, so choose every field to match their words rather than defaulting to a bundled 'everything' report. Examples: 'PDF of just output tokens per day' -> format:pdf, metrics:[output_tokens], group_by:day. 'Excel of spend by model for the last 30 days' -> format:xlsx, metrics:[cost], group_by:model, days:30. 'Compare cost vs total tokens over the last 3 weeks' -> metrics:[cost,total_tokens], compare:true, days:21. Always set a short, specific title describing this particular report's contents (e.g. 'Output tokens per day', not a generic 'Spend report'). The download link is shown to the user automatically by the UI, so do not repeat the raw URL in your reply -- just briefly confirm what the report covers.",
     input_schema: {
       type: "object",
       properties: {
+        format: {
+          type: "string",
+          enum: ["pdf", "xlsx"],
+          description: "File type to produce. PDF for something readable/shareable, Excel for raw rows to filter/analyze.",
+        },
+        metrics: {
+          type: "array",
+          items: { type: "string", enum: ["cost", "input_tokens", "output_tokens", "total_tokens"] },
+          description:
+            "Which measure(s) to report on. Include only what was asked for -- e.g. just ['output_tokens'] for an output-tokens-only request, not the full set.",
+        },
+        group_by: {
+          type: "string",
+          enum: ["day", "model", "provider"],
+          description: "How to break the data down. 'day' for a time series (default), or 'model'/'provider' for a breakdown request.",
+        },
         days: { type: "number", description: "How many trailing days to cover. Defaults to 15." },
-        window: {
+        moving_average_window: {
           type: "number",
-          description: "Moving-average window size in days. Defaults to 7.",
+          description:
+            "Moving-average window size in days, only meaningful with group_by:day. Omit entirely if the user didn't ask for a trend/moving average.",
+        },
+        compare: {
+          type: "boolean",
+          description:
+            "Set true only when the user explicitly wants two or more metrics compared on one chart (e.g. 'cost vs tokens'); this indexes each metric to its own first-day value so different units share one axis. Leave false/omitted for a single metric or for several metrics reported separately.",
+        },
+        title: {
+          type: "string",
+          description: "Short, specific title for this report, reflecting exactly what was requested.",
         },
       },
+      required: ["format", "metrics", "title"],
     },
   },
 ];
@@ -175,14 +202,36 @@ export async function executeAgentTool(
         total_spend: Math.round(totalSpend * 100) / 100,
       };
     }
-    case "generate_spend_report": {
+    case "generate_report": {
+      const format = input.format === "xlsx" ? "xlsx" : "pdf";
       const days = typeof input.days === "number" && input.days > 0 ? input.days : 15;
-      const window = typeof input.window === "number" && input.window > 0 ? input.window : 7;
+      const groupBy =
+        input.group_by === "model" || input.group_by === "provider" ? input.group_by : "day";
+      const allowedMetrics = new Set(["cost", "input_tokens", "output_tokens", "total_tokens"]);
+      const metrics = Array.isArray(input.metrics)
+        ? input.metrics.filter((m): m is string => typeof m === "string" && allowedMetrics.has(m))
+        : [];
+      const finalMetrics = metrics.length > 0 ? metrics.slice(0, 4) : ["cost"];
+      const window =
+        groupBy === "day" && typeof input.moving_average_window === "number" && input.moving_average_window > 0
+          ? Math.floor(input.moving_average_window)
+          : null;
+      const compare = input.compare === true;
+      const title = typeof input.title === "string" && input.title.trim() ? input.title.trim() : "Report";
+
+      const params = new URLSearchParams({
+        format,
+        days: String(days),
+        metrics: finalMetrics.join(","),
+        group_by: groupBy,
+        title,
+      });
+      if (window) params.set("window", String(window));
+      if (compare) params.set("compare", "true");
+
       return {
-        report_url: `/api/reports/spend-trend?days=${days}&window=${window}`,
-        label: `Spend report (${days} days).pdf`,
-        days,
-        window,
+        report_url: `/api/reports/custom?${params.toString()}`,
+        label: `${title}.${format}`,
       };
     }
     case "get_usage_for_date": {
