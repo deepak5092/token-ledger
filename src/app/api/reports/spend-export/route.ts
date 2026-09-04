@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { fetchUsage } from "@/lib/agent/tools";
-import { movingAverageSpend, indexedSpendVsTokens } from "@/lib/dashboard/aggregate";
-import { buildSpendTrendPdf } from "@/lib/reports/spend-trend-pdf";
+import { movingAverageSpend, spendByModel, spendByProvider } from "@/lib/dashboard/aggregate";
+import { buildSpendTrendWorkbook } from "@/lib/reports/spend-trend-workbook";
 
 const MAX_DAYS = 180;
 const MAX_WINDOW = 30;
@@ -21,10 +21,9 @@ function clampInt(raw: string | null, fallback: number, max: number): number {
   return Math.min(Math.floor(n), max);
 }
 
-// Regenerated on demand from live usage_records rather than persisted
-// anywhere -- given a date range + moving-average window and the caller's
-// own session cookies, the PDF is fully reproducible, so there's nothing
-// to store or invalidate.
+// Same on-demand, nothing-persisted shape as the PDF report route (see
+// spend-trend/route.ts): fully reproducible from live usage_records given
+// a date range + window, so there's nothing to store or invalidate.
 export async function GET(req: Request) {
   const supabase = await createClient();
   const {
@@ -50,8 +49,6 @@ export async function GET(req: Request) {
   end.setUTCHours(0, 0, 0, 0);
   const periodStart = new Date(end);
   periodStart.setUTCDate(periodStart.getUTCDate() - (days - 1));
-  // Extra lookback so the moving average is already full-window for every
-  // day of the requested period (mirrors the get_spend_trend agent tool).
   const fetchStart = new Date(end);
   fetchStart.setUTCDate(fetchStart.getUTCDate() - (days + window - 2));
 
@@ -64,11 +61,12 @@ export async function GET(req: Request) {
   const totalSpend = series.reduce((sum, p) => sum + p.cost, 0);
 
   const periodStartStr = periodStart.toISOString().slice(0, 10);
-  const costVsTokens = indexedSpendVsTokens(rows.filter((r) => r.date >= periodStartStr));
+  const periodRows = rows.filter((r) => r.date >= periodStartStr);
 
-  const pdf = await buildSpendTrendPdf({
+  const workbook = await buildSpendTrendWorkbook({
     series,
-    costVsTokens,
+    byModel: spendByModel(periodRows),
+    byProvider: spendByProvider(periodRows),
     windowDays: window,
     totalSpend: Math.round(totalSpend * 100) / 100,
     avgCostPerDay: Math.round((totalSpend / days) * 100) / 100,
@@ -76,10 +74,10 @@ export async function GET(req: Request) {
     generatedAt: new Date(),
   });
 
-  return new Response(new Uint8Array(pdf), {
+  return new Response(new Uint8Array(workbook), {
     headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="token-ledger-spend-trend-${days}d.pdf"`,
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="token-ledger-spend-export-${days}d.xlsx"`,
       "Cache-Control": "no-store",
     },
   });

@@ -1,10 +1,13 @@
 import PDFDocument from "pdfkit";
-import type { MovingAveragePoint } from "@/lib/dashboard/aggregate";
+import type { MovingAveragePoint, IndexedPoint } from "@/lib/dashboard/aggregate";
 
 // Reuses the app's validated dataviz palette (see the dataviz skill's
 // references/palette.md) rather than picking print colors ad hoc: slot 1
 // (blue) for the primary series, slot 2 (orange) for the secondary one,
-// same ink/gridline roles as every other chart in the app.
+// slot 3 (aqua) for the tokens series on the cost-vs-tokens page (orange
+// is reserved for "moving average of spend" on the first chart, so reusing
+// it here for "tokens" would read as the same thing), same ink/gridline
+// roles as every other chart in the app.
 const COLOR = {
   ink: "#0b0b0b",
   secondaryInk: "#52514e",
@@ -14,6 +17,7 @@ const COLOR = {
   pagePlane: "#f9f9f7",
   dailySpend: "#2a78d6",
   movingAvg: "#eb6834",
+  tokensIndex: "#1baf7a",
 };
 
 // A table row per day gets unwieldy well past a month; cap it and note the
@@ -23,6 +27,7 @@ const MAX_TABLE_ROWS = 31;
 
 export type SpendTrendReportInput = {
   series: MovingAveragePoint[];
+  costVsTokens: IndexedPoint[];
   windowDays: number;
   totalSpend: number;
   avgCostPerDay: number;
@@ -53,7 +58,7 @@ export function buildSpendTrendPdf(input: SpendTrendReportInput): Promise<Buffer
 }
 
 function renderReport(doc: PDFKit.PDFDocument, input: SpendTrendReportInput) {
-  const { series, windowDays, totalSpend, avgCostPerDay, rangeLabel, generatedAt } = input;
+  const { series, costVsTokens, windowDays, totalSpend, avgCostPerDay, rangeLabel, generatedAt } = input;
   const left = doc.page.margins.left;
   const contentWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
 
@@ -90,6 +95,34 @@ function renderReport(doc: PDFKit.PDFDocument, input: SpendTrendReportInput) {
   doc.y = chartY + chartHeight + 28;
 
   drawTable(doc, series, left, contentWidth);
+
+  // Cost and tokens are on completely different scales (dollars vs. raw
+  // token counts), so this is never a dual-axis overlay on the chart
+  // above -- both series are indexed to their first non-zero day = 100 (see
+  // indexedSpendVsTokens) and shown on their own page with one shared axis.
+  const hasIndexData = costVsTokens.some((p) => p.spendIndex != null || p.tokensIndex != null);
+  if (hasIndexData) {
+    doc.addPage();
+    renderCostVsTokensPage(doc, costVsTokens);
+  }
+}
+
+function renderCostVsTokensPage(doc: PDFKit.PDFDocument, costVsTokens: IndexedPoint[]) {
+  const left = doc.page.margins.left;
+  const contentWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+  doc.fontSize(16).fillColor(COLOR.ink).text("Cost vs. tokens");
+  doc
+    .fontSize(9)
+    .fillColor(COLOR.mutedInk)
+    .text(
+      "Both series indexed to the first day's value = 100, since cost and token counts sit on different scales.",
+      { width: contentWidth },
+    );
+
+  doc.moveDown(1);
+
+  drawIndexChart(doc, { x: left, y: doc.y, width: contentWidth, height: 260, series: costVsTokens });
 }
 
 function drawStat(
@@ -166,6 +199,73 @@ function drawLineChart(
       .map((p, i) => (p.movingAvg == null ? null : { x: xAt(i), y: yAt(p.movingAvg) }))
       .filter((pt): pt is { x: number; y: number } => pt !== null),
     COLOR.movingAvg,
+  );
+
+  doc.fontSize(8).fillColor(COLOR.mutedInk);
+  const labelIdxs = n > 1 ? [0, Math.floor((n - 1) / 2), n - 1] : [0];
+  for (const i of labelIdxs) {
+    doc.text(formatDate(series[i].date), xAt(i) - 20, plotY + plotHeight + 4, {
+      width: 40,
+      align: "center",
+    });
+  }
+}
+
+function drawIndexChart(
+  doc: PDFKit.PDFDocument,
+  opts: { x: number; y: number; width: number; height: number; series: IndexedPoint[] },
+) {
+  const { x, y, width, height, series } = opts;
+  const padLeft = 40;
+  const padBottom = 18;
+  const padTop = 22;
+  const plotX = x + padLeft;
+  const plotWidth = width - padLeft;
+  const plotHeight = height - padBottom - padTop;
+  const plotY = y + padTop;
+
+  doc.rect(x, y, width, height).fill(COLOR.pagePlane);
+
+  drawLegendEntry(doc, x + 4, y + 6, COLOR.dailySpend, "Spend (indexed)");
+  drawLegendEntry(doc, x + 4 + 120, y + 6, COLOR.tokensIndex, "Tokens (indexed)");
+
+  const values = series.flatMap((p) => [p.spendIndex ?? 0, p.tokensIndex ?? 0]);
+  const yMax = Math.max(...values, 100) * 1.15;
+
+  const gridLines = 4;
+  doc.fontSize(8).fillColor(COLOR.mutedInk);
+  for (let i = 0; i <= gridLines; i++) {
+    const gy = plotY + (plotHeight * i) / gridLines;
+    const val = yMax * (1 - i / gridLines);
+    doc.strokeColor(COLOR.gridline).lineWidth(0.5).moveTo(plotX, gy).lineTo(x + width, gy).stroke();
+    doc.fillColor(COLOR.mutedInk).text(val.toFixed(0), x, gy - 4, { width: padLeft - 6, align: "right" });
+  }
+
+  doc
+    .strokeColor(COLOR.baseline)
+    .lineWidth(1)
+    .moveTo(plotX, plotY + plotHeight)
+    .lineTo(x + width, plotY + plotHeight)
+    .stroke();
+
+  const n = series.length;
+  const stepX = n > 1 ? plotWidth / (n - 1) : 0;
+  const xAt = (i: number) => plotX + stepX * i;
+  const yAt = (v: number) => plotY + plotHeight - (v / yMax) * plotHeight;
+
+  drawSeries(
+    doc,
+    series
+      .map((p, i) => (p.spendIndex == null ? null : { x: xAt(i), y: yAt(p.spendIndex) }))
+      .filter((pt): pt is { x: number; y: number } => pt !== null),
+    COLOR.dailySpend,
+  );
+  drawSeries(
+    doc,
+    series
+      .map((p, i) => (p.tokensIndex == null ? null : { x: xAt(i), y: yAt(p.tokensIndex) }))
+      .filter((pt): pt is { x: number; y: number } => pt !== null),
+    COLOR.tokensIndex,
   );
 
   doc.fontSize(8).fillColor(COLOR.mutedInk);

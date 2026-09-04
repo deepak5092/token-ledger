@@ -99,7 +99,22 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "generate_spend_report",
     description:
-      "Generates a downloadable PDF report covering the trailing N days: daily spend, a moving-average trend chart, and summary stats. Call this when the user asks for a report, export, or PDF. The download link is shown to the user automatically by the UI, so do not repeat the raw URL in your reply -- just briefly confirm what the report covers.",
+      "Generates a downloadable PDF report covering the trailing N days: daily spend, a moving-average trend chart, summary stats, and a cost-vs-tokens trend page (both indexed to a common scale). Call this when the user asks for a report, PDF, or something to read/share. The download link is shown to the user automatically by the UI, so do not repeat the raw URL in your reply -- just briefly confirm what the report covers.",
+    input_schema: {
+      type: "object",
+      properties: {
+        days: { type: "number", description: "How many trailing days to cover. Defaults to 15." },
+        window: {
+          type: "number",
+          description: "Moving-average window size in days. Defaults to 7.",
+        },
+      },
+    },
+  },
+  {
+    name: "generate_spend_export",
+    description:
+      "Generates a downloadable Excel (.xlsx) workbook covering the trailing N days: a daily spend + moving-average sheet, a by-model sheet, a by-provider sheet, and a summary sheet. Call this when the user asks to export, download, or extract their raw data (e.g. 'give me a spreadsheet' or 'export this to Excel'), as opposed to a readable report -- use generate_spend_report for that. The download link is shown to the user automatically by the UI, so do not repeat the raw URL in your reply -- just briefly confirm what the export covers.",
     input_schema: {
       type: "object",
       properties: {
@@ -180,6 +195,17 @@ export async function executeAgentTool(
       const window = typeof input.window === "number" && input.window > 0 ? input.window : 7;
       return {
         report_url: `/api/reports/spend-trend?days=${days}&window=${window}`,
+        label: `Spend report (${days} days).pdf`,
+        days,
+        window,
+      };
+    }
+    case "generate_spend_export": {
+      const days = typeof input.days === "number" && input.days > 0 ? input.days : 15;
+      const window = typeof input.window === "number" && input.window > 0 ? input.window : 7;
+      return {
+        report_url: `/api/reports/spend-export?days=${days}&window=${window}`,
+        label: `Spend data (${days} days).xlsx`,
         days,
         window,
       };

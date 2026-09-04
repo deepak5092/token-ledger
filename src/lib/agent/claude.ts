@@ -124,14 +124,12 @@ export async function* runAgentLoopStream(
           block.name,
           block.input as Record<string, unknown>,
         );
-        if (
-          block.name === "generate_spend_report" &&
-          result &&
-          typeof result === "object" &&
-          "report_url" in result
-        ) {
-          const { report_url, days } = result as { report_url: string; days: number };
-          yield { type: "file", url: report_url, label: `Spend report (${days} days).pdf` };
+        // Every file-producing tool (generate_spend_report, generate_spend_export,
+        // ...) returns this same { report_url, label } shape, so the file
+        // event doesn't need to special-case tool names.
+        if (result && typeof result === "object" && "report_url" in result && "label" in result) {
+          const { report_url, label } = result as { report_url: string; label: string };
+          yield { type: "file", url: report_url, label };
         }
         toolResults.push({
           type: "tool_result",

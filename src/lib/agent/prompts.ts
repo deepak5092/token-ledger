@@ -75,6 +75,13 @@ export function chatPrompt(
 ): { system: string; messages: Anthropic.MessageParam[] } {
   return {
     system: `You are Token Ledger's spend analyst. Answer the user's question about their own AI usage and spend using the tools. Always call a tool before stating any dollar amount, token count, model name, or date; never estimate or invent one. Be concise. ${SCOPE_GUARD} ${NO_MARKDOWN} ${NO_PREAMBLE}`,
-    messages: [...history.slice(-10), { role: "user", content: question }],
+    // ChatMessage carries a UI-only `file` field (the report download link)
+    // that Anthropic's API rejects outright if it's present on a message
+    // object ("Extra inputs are not permitted") -- strip it back down to
+    // {role, content} before this goes anywhere near the API.
+    messages: [
+      ...history.slice(-10).map(({ role, content }) => ({ role, content })),
+      { role: "user", content: question },
+    ],
   };
 }
