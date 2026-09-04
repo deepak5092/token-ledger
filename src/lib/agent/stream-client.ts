@@ -3,7 +3,7 @@ import type { ChatMessage } from "./prompts";
 export type { ChatMessage };
 
 export type AgentStreamPayload =
-  | { mode: "chat"; question: string; history: ChatMessage[] }
+  | { mode: "chat"; question: string; history: ChatMessage[]; conversation_id?: string }
   | { mode: "briefing" }
   | { mode: "anomaly"; date: string };
 

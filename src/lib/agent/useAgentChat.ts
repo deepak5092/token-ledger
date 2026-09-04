@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { streamAgent, type ChatMessage } from "./stream-client";
+import type { ConversationSummary } from "./conversations";
 
 export type AgentAction =
   | { mode: "chat"; question: string }
@@ -17,7 +18,23 @@ export type AgentAction =
 // "Generate my weekly briefing") to show as the user-side bubble, keeping
 // the thread readable as a normal back-and-forth. `submit` is a thin
 // wrapper over `run` for plain typed questions.
-export function useAgentChat() {
+//
+// Persisted chat history (ChatGPT-style conversation list) is opt-in via
+// `conversationId`/`onConversationCreated`: AgentPanel calls this hook
+// without them and keeps behaving exactly as before (nothing sent to
+// /api/conversations, nothing persisted). ChatPanel passes both, so the
+// first message of a fresh session lazily creates a conversation row
+// before the chat request goes out, the same way ChatGPT doesn't show a
+// "New chat" in its sidebar until you've actually sent something.
+export function useAgentChat(options?: {
+  conversationId?: string | null;
+  onConversationCreated?: (conversation: ConversationSummary) => void;
+  onTurnComplete?: () => void;
+}) {
+  const conversationId = options?.conversationId ?? null;
+  const onConversationCreated = options?.onConversationCreated;
+  const onTurnComplete = options?.onTurnComplete;
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -38,11 +55,30 @@ export function useAgentChat() {
     const history = messages;
     setMessages([...history, { role: "user", content: label }]);
 
+    let activeConversationId = conversationId;
+    if (action.mode === "chat" && onConversationCreated && !activeConversationId) {
+      try {
+        const res = await fetch("/api/conversations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: question }),
+        });
+        if (res.ok) {
+          const { conversation } = (await res.json()) as { conversation: ConversationSummary };
+          activeConversationId = conversation.id;
+          onConversationCreated(conversation);
+        }
+      } catch {
+        // A conversation row is just where the turn gets saved -- if this
+        // fails, the chat itself should still work, just without history.
+      }
+    }
+
     let text = "";
     let file: { url: string; label: string } | null = null;
     await streamAgent(
       action.mode === "chat"
-        ? { mode: "chat", question, history }
+        ? { mode: "chat", question, history, conversation_id: activeConversationId ?? undefined }
         : action.mode === "briefing"
           ? { mode: "briefing" }
           : { mode: "anomaly", date: action.date },
@@ -65,9 +101,10 @@ export function useAgentChat() {
     if (text || file) {
       setMessages((m) => [...m, { role: "assistant", content: text, file: file ?? undefined }]);
     }
+    onTurnComplete?.();
   };
 
   const submit = (question: string) => run({ mode: "chat", question });
 
-  return { messages, error, pending, draft, draftFile, submit, run };
+  return { messages, error, pending, draft, draftFile, submit, run, setMessages };
 }
