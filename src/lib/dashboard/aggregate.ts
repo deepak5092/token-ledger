@@ -168,6 +168,26 @@ export function tokenSplit(rows: UsageRow[]): TokenSplit {
   return { input, output };
 }
 
+export type MovingAveragePoint = DailySpendPoint & { movingAvg: number | null };
+
+// Trailing, inclusive-of-today window (unlike anomaly.ts's rollingAverage,
+// which excludes the current day so it can compare a day against its own
+// baseline). `movingAvg` is null until `windowSize` days of history have
+// accumulated, rather than averaging over a partial window -- a 3-day
+// average labeled as a 7-day one would be misleading on a chart.
+export function movingAverageSpend(
+  rows: UsageRow[],
+  windowSize: number,
+): MovingAveragePoint[] {
+  const points = dailySpend(rows);
+  return points.map((point, i) => {
+    if (i + 1 < windowSize) return { ...point, movingAvg: null };
+    const window = points.slice(i - windowSize + 1, i + 1);
+    const avg = window.reduce((sum, p) => sum + p.cost, 0) / windowSize;
+    return { ...point, movingAvg: round(avg) };
+  });
+}
+
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export type DayOfWeekPoint = { day: string; cost: number };

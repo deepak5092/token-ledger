@@ -5,6 +5,7 @@ import {
   spendByModel,
   spendByProvider,
   computeSummary,
+  movingAverageSpend,
   type UsageRow,
 } from "@/lib/dashboard/aggregate";
 
@@ -67,6 +68,21 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
     },
   },
   {
+    name: "get_spend_trend",
+    description:
+      "Daily spend in USD for the trailing N days, each day annotated with its trailing moving average (e.g. a 7-day average), plus the average spend per day across the whole period. Use this for 'what was my average daily spend' or 'show a moving average' questions.",
+    input_schema: {
+      type: "object",
+      properties: {
+        days: { type: "number", description: "How many trailing days to cover. Defaults to 15." },
+        window: {
+          type: "number",
+          description: "Moving-average window size in days. Defaults to 7.",
+        },
+      },
+    },
+  },
+  {
     name: "get_usage_for_date",
     description:
       "Per-model, per-connection breakdown of usage and cost for one specific date. Use this to investigate what drove a spend spike on that day.",
@@ -113,6 +129,34 @@ export async function executeAgentTool(
       const start = new Date(end);
       start.setUTCDate(start.getUTCDate() - (days - 1));
       return computeSummary(rows, { start, end });
+    }
+    case "get_spend_trend": {
+      const days = typeof input.days === "number" && input.days > 0 ? input.days : 15;
+      const window = typeof input.window === "number" && input.window > 0 ? input.window : 7;
+
+      const end = new Date();
+      end.setUTCHours(0, 0, 0, 0);
+      // Fetch `window - 1` extra days of lookback so the moving average is
+      // already full-window for every day of the requested period, instead
+      // of reporting null/partial averages for its first `window - 1` days.
+      const fetchStart = new Date(end);
+      fetchStart.setUTCDate(fetchStart.getUTCDate() - (days + window - 2));
+
+      const rows = await fetchUsage(
+        supabase,
+        fetchStart.toISOString().slice(0, 10),
+        end.toISOString().slice(0, 10),
+      );
+      const withMovingAvg = movingAverageSpend(rows, window);
+      const series = withMovingAvg.slice(-days);
+      const totalSpend = series.reduce((sum, p) => sum + p.cost, 0);
+
+      return {
+        window_days: window,
+        series,
+        avg_cost_per_day: Math.round((totalSpend / days) * 100) / 100,
+        total_spend: Math.round(totalSpend * 100) / 100,
+      };
     }
     case "get_usage_for_date": {
       const date = typeof input.date === "string" ? input.date : undefined;
