@@ -18,7 +18,10 @@ type AgentRequest =
   | { mode: "briefing" }
   | { mode: "anomaly"; date: string };
 
-type StreamEvent = { type: "text"; text: string } | { type: "error"; message: string };
+type StreamEvent =
+  | { type: "text"; text: string }
+  | { type: "file"; url: string; label: string }
+  | { type: "error"; message: string };
 
 function sse(event: StreamEvent): string {
   return `data: ${JSON.stringify(event)}\n\n`;
@@ -84,7 +87,7 @@ export async function POST(req: Request) {
       }
       try {
         for await (const chunk of runAgentLoopStream(supabase, prompt.system, prompt.messages)) {
-          controller.enqueue(encoder.encode(sse({ type: "text", text: chunk })));
+          controller.enqueue(encoder.encode(sse(chunk)));
         }
       } catch (err) {
         // AgentUnavailableError's message is already safe to show verbatim;

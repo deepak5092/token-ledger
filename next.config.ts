@@ -41,6 +41,12 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // pdfkit (PDF report generation) reads its standard-font .afm files off
+  // disk via fs at request time -- Node-specific filesystem access that
+  // webpack's static asset tracing can miss, so it's opted out of bundling
+  // and left to Node's native require instead (this is exactly the case
+  // serverExternalPackages exists for, per Next's own docs).
+  serverExternalPackages: ["pdfkit"],
   async headers() {
     return [
       {

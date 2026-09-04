@@ -12,7 +12,11 @@ export type AgentStreamPayload =
 // server-action + single setState pattern did.
 export async function streamAgent(
   payload: AgentStreamPayload,
-  handlers: { onText: (chunk: string) => void; onError: (message: string) => void },
+  handlers: {
+    onText: (chunk: string) => void;
+    onFile: (file: { url: string; label: string }) => void;
+    onError: (message: string) => void;
+  },
 ): Promise<void> {
   let res: Response;
   try {
@@ -50,9 +54,11 @@ export async function streamAgent(
 
       const event = JSON.parse(dataLine.slice("data: ".length)) as
         | { type: "text"; text: string }
+        | { type: "file"; url: string; label: string }
         | { type: "error"; message: string };
 
       if (event.type === "text") handlers.onText(event.text);
+      else if (event.type === "file") handlers.onFile({ url: event.url, label: event.label });
       else handlers.onError(event.message);
     }
   }

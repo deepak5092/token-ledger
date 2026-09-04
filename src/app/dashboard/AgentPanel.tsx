@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentType } from "react";
-import { Sparkles, AlertTriangle, HelpCircle, Send, Bot, X } from "lucide-react";
+import { Sparkles, AlertTriangle, HelpCircle, Send, Bot, X, FileDown } from "lucide-react";
 import { useAgentChat, type AgentAction } from "@/lib/agent/useAgentChat";
 import { Input } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +13,19 @@ const formatDate = (dateStr: string) =>
     day: "numeric",
     timeZone: "UTC",
   });
+
+function ReportLink({ file }: { file: { url: string; label: string } }) {
+  return (
+    <a
+      href={file.url}
+      download
+      className="mt-1.5 inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 px-2.5 py-1 text-xs text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+    >
+      <FileDown className="h-3 w-3" aria-hidden />
+      {file.label}
+    </a>
+  );
+}
 
 function timeGreeting(): string {
   const hour = new Date().getHours();
@@ -73,7 +86,7 @@ export function AgentPanel({
   spendWithAnomalies: AnomalyPoint[];
   onClose?: () => void;
 }) {
-  const { messages, error, pending, draft, run } = useAgentChat();
+  const { messages, error, pending, draft, draftFile, run } = useAgentChat();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -145,22 +158,28 @@ export function AgentPanel({
                     </div>
                   </div>
                 ) : (
-                  <p key={i} className="text-sm whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">
-                    {m.content}
-                  </p>
+                  <div key={i}>
+                    <p className="text-sm whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">
+                      {m.content}
+                    </p>
+                    {m.file && <ReportLink file={m.file} />}
+                  </div>
                 ),
               )}
               {pending && (
-                <p className="text-sm whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">
-                  {draft ? (
-                    <>
-                      {draft}
-                      <span className="ml-0.5 inline-block h-3 w-1 animate-pulse bg-zinc-400 align-middle dark:bg-zinc-500" />
-                    </>
-                  ) : (
-                    <span className="text-zinc-500">Thinking…</span>
-                  )}
-                </p>
+                <div>
+                  <p className="text-sm whitespace-pre-wrap text-zinc-800 dark:text-zinc-200">
+                    {draft ? (
+                      <>
+                        {draft}
+                        <span className="ml-0.5 inline-block h-3 w-1 animate-pulse bg-zinc-400 align-middle dark:bg-zinc-500" />
+                      </>
+                    ) : (
+                      <span className="text-zinc-500">Thinking…</span>
+                    )}
+                  </p>
+                  {draftFile && <ReportLink file={draftFile} />}
+                </div>
               )}
               {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
               <div ref={bottomRef} />

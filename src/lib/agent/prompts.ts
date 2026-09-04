@@ -26,7 +26,11 @@ export const SCOPE_GUARD =
 
 export const OFF_TOPIC_REPLY = "I can only help with questions about your usage and spend.";
 
-export type ChatMessage = { role: "user" | "assistant"; content: string };
+export type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  file?: { url: string; label: string };
+};
 
 // Cheap heuristic run before the tool-use loop: catches unambiguous
 // off-topic requests (coding problems, trivia, general chit-chat) so they

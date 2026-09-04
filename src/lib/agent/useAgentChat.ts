@@ -22,6 +22,7 @@ export function useAgentChat() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [draft, setDraft] = useState("");
+  const [draftFile, setDraftFile] = useState<{ url: string; label: string } | null>(null);
 
   const run = async (action: AgentAction) => {
     if (pending) return;
@@ -32,11 +33,13 @@ export function useAgentChat() {
 
     setError(null);
     setDraft("");
+    setDraftFile(null);
     setPending(true);
     const history = messages;
     setMessages([...history, { role: "user", content: label }]);
 
     let text = "";
+    let file: { url: string; label: string } | null = null;
     await streamAgent(
       action.mode === "chat"
         ? { mode: "chat", question, history }
@@ -48,16 +51,23 @@ export function useAgentChat() {
           text += chunk;
           setDraft(text);
         },
+        onFile: (f) => {
+          file = f;
+          setDraftFile(f);
+        },
         onError: setError,
       },
     );
 
     setPending(false);
     setDraft("");
-    if (text) setMessages((m) => [...m, { role: "assistant", content: text }]);
+    setDraftFile(null);
+    if (text || file) {
+      setMessages((m) => [...m, { role: "assistant", content: text, file: file ?? undefined }]);
+    }
   };
 
   const submit = (question: string) => run({ mode: "chat", question });
 
-  return { messages, error, pending, draft, submit, run };
+  return { messages, error, pending, draft, draftFile, submit, run };
 }

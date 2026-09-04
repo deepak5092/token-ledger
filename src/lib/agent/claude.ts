@@ -18,6 +18,14 @@ const RETRY_BASE_DELAY_MS = 1000;
 // is the raw API error body (see error.ts's makeMessage).
 export class AgentUnavailableError extends Error {}
 
+// Almost every round only ever produces text; "file" is the one exception,
+// emitted when the model calls generate_spend_report, so the UI can render
+// an actual download link instead of the model having to spell out a raw
+// URL in prose (which SCOPE_GUARD-style plain-text replies can't format).
+export type AgentStreamChunk =
+  | { type: "text"; text: string }
+  | { type: "file"; url: string; label: string };
+
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
   if (!client) client = new Anthropic();
@@ -41,7 +49,7 @@ export async function* runAgentLoopStream(
   supabase: SupabaseServerClient,
   system: string,
   messages: Anthropic.MessageParam[],
-): AsyncGenerator<string> {
+): AsyncGenerator<AgentStreamChunk> {
   const anthropic = getClient();
   const conversation: Anthropic.MessageParam[] = [...messages];
 
@@ -64,7 +72,7 @@ export async function* runAgentLoopStream(
         for await (const event of stream) {
           if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
             roundHadText = true;
-            yield event.delta.text;
+            yield { type: "text", text: event.delta.text };
           }
         }
 
@@ -103,7 +111,7 @@ export async function* runAgentLoopStream(
     // A round can emit text (e.g. "I'll check that.") before calling a
     // tool; separate it from the next round's text so they don't run
     // together mid-sentence once concatenated on the client.
-    if (roundHadText) yield "\n\n";
+    if (roundHadText) yield { type: "text", text: "\n\n" };
 
     conversation.push({ role: "assistant", content: response.content });
 
@@ -116,6 +124,15 @@ export async function* runAgentLoopStream(
           block.name,
           block.input as Record<string, unknown>,
         );
+        if (
+          block.name === "generate_spend_report" &&
+          result &&
+          typeof result === "object" &&
+          "report_url" in result
+        ) {
+          const { report_url, days } = result as { report_url: string; days: number };
+          yield { type: "file", url: report_url, label: `Spend report (${days} days).pdf` };
+        }
         toolResults.push({
           type: "tool_result",
           tool_use_id: block.id,
@@ -134,5 +151,8 @@ export async function* runAgentLoopStream(
     conversation.push({ role: "user", content: toolResults });
   }
 
-  yield "I ran out of tool-call turns before finishing. Try a narrower question.";
+  yield {
+    type: "text",
+    text: "I ran out of tool-call turns before finishing. Try a narrower question.",
+  };
 }

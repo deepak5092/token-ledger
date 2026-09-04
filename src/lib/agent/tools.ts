@@ -11,7 +11,9 @@ import {
 
 export type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-async function fetchUsage(
+// Exported so callers outside the agent tool loop (e.g. the PDF report
+// route) can pull the same RLS-scoped rows without duplicating the query.
+export async function fetchUsage(
   supabase: SupabaseServerClient,
   startDate?: string,
   endDate?: string,
@@ -94,6 +96,21 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
       required: ["date"],
     },
   },
+  {
+    name: "generate_spend_report",
+    description:
+      "Generates a downloadable PDF report covering the trailing N days: daily spend, a moving-average trend chart, and summary stats. Call this when the user asks for a report, export, or PDF. The download link is shown to the user automatically by the UI, so do not repeat the raw URL in your reply -- just briefly confirm what the report covers.",
+    input_schema: {
+      type: "object",
+      properties: {
+        days: { type: "number", description: "How many trailing days to cover. Defaults to 15." },
+        window: {
+          type: "number",
+          description: "Moving-average window size in days. Defaults to 7.",
+        },
+      },
+    },
+  },
 ];
 
 export async function executeAgentTool(
@@ -156,6 +173,15 @@ export async function executeAgentTool(
         series,
         avg_cost_per_day: Math.round((totalSpend / days) * 100) / 100,
         total_spend: Math.round(totalSpend * 100) / 100,
+      };
+    }
+    case "generate_spend_report": {
+      const days = typeof input.days === "number" && input.days > 0 ? input.days : 15;
+      const window = typeof input.window === "number" && input.window > 0 ? input.window : 7;
+      return {
+        report_url: `/api/reports/spend-trend?days=${days}&window=${window}`,
+        days,
+        window,
       };
     }
     case "get_usage_for_date": {

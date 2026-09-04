@@ -1,8 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { Bot, ArrowUp } from "lucide-react";
+import { Bot, ArrowUp, FileDown } from "lucide-react";
 import { useAgentChat } from "@/lib/agent/useAgentChat";
+
+function ReportLink({ file }: { file: { url: string; label: string } }) {
+  return (
+    <a
+      href={file.url}
+      download
+      className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+    >
+      <FileDown className="h-3.5 w-3.5" aria-hidden />
+      {file.label}
+    </a>
+  );
+}
 
 const SUGGESTIONS = [
   "Which model cost the most last month?",
@@ -11,7 +24,7 @@ const SUGGESTIONS = [
 ];
 
 export function ChatPanel() {
-  const { messages, error, pending, draft, submit: submitQuestion } = useAgentChat();
+  const { messages, error, pending, draft, draftFile, submit: submitQuestion } = useAgentChat();
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -91,9 +104,12 @@ export function ChatPanel() {
                     >
                       <Bot className="h-3.5 w-3.5" />
                     </span>
-                    <p className="flex-1 whitespace-pre-wrap pt-0.5 text-sm text-zinc-800 dark:text-zinc-200">
-                      {m.content}
-                    </p>
+                    <div className="flex-1">
+                      <p className="whitespace-pre-wrap pt-0.5 text-sm text-zinc-800 dark:text-zinc-200">
+                        {m.content}
+                      </p>
+                      {m.file && <ReportLink file={m.file} />}
+                    </div>
                   </div>
                 ),
               )}
@@ -105,16 +121,19 @@ export function ChatPanel() {
                   >
                     <Bot className="h-3.5 w-3.5" />
                   </span>
-                  <p className="flex-1 whitespace-pre-wrap pt-0.5 text-sm text-zinc-800 dark:text-zinc-200">
-                    {draft ? (
-                      <>
-                        {draft}
-                        <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-zinc-400 align-middle dark:bg-zinc-500" />
-                      </>
-                    ) : (
-                      <span className="text-zinc-500">Thinking…</span>
-                    )}
-                  </p>
+                  <div className="flex-1">
+                    <p className="whitespace-pre-wrap pt-0.5 text-sm text-zinc-800 dark:text-zinc-200">
+                      {draft ? (
+                        <>
+                          {draft}
+                          <span className="ml-0.5 inline-block h-3.5 w-1.5 animate-pulse bg-zinc-400 align-middle dark:bg-zinc-500" />
+                        </>
+                      ) : (
+                        <span className="text-zinc-500">Thinking…</span>
+                      )}
+                    </p>
+                    {draftFile && <ReportLink file={draftFile} />}
+                  </div>
                 </div>
               )}
               {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
