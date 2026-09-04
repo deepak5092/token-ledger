@@ -32,6 +32,7 @@ export function AuthOverlay({
   error,
   checkEmail,
   resetSent,
+  confirmInfo,
   next,
 }: {
   children: ReactNode;
@@ -39,20 +40,24 @@ export function AuthOverlay({
   error?: string;
   checkEmail?: boolean;
   resetSent?: boolean;
+  confirmInfo?: boolean;
   next?: string;
 }) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  // error/checkEmail/resetSent only describe the redirect that produced
-  // initialMode; once the user switches modes by hand those no longer apply.
+  // error/checkEmail/resetSent/confirmInfo only describe the redirect that
+  // produced initialMode; once the user switches modes by hand those no
+  // longer apply.
   const [serverError, setServerError] = useState(error);
   const [serverCheckEmail, setServerCheckEmail] = useState(checkEmail);
   const [serverResetSent, setServerResetSent] = useState(resetSent);
+  const [serverConfirmInfo, setServerConfirmInfo] = useState(confirmInfo);
 
   function switchMode(next: AuthMode) {
     setMode(next);
     setServerError(undefined);
     setServerCheckEmail(false);
     setServerResetSent(false);
+    setServerConfirmInfo(false);
   }
 
   useEffect(() => {
@@ -116,7 +121,12 @@ export function AuthOverlay({
             ) : mode === "forgot" ? (
               <ForgotPasswordForm error={serverError} />
             ) : (
-              <LoginForm error={serverError} resetSent={serverResetSent} next={next} />
+              <LoginForm
+                error={serverError}
+                resetSent={serverResetSent}
+                confirmInfo={serverConfirmInfo}
+                next={next}
+              />
             )}
 
             <p className="text-sm text-zinc-600 dark:text-zinc-400">

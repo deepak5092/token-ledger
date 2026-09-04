@@ -9,10 +9,12 @@ import { useAuthOverlay } from "./AuthOverlay";
 export function LoginForm({
   error,
   resetSent,
+  confirmInfo,
   next,
 }: {
   error?: string;
   resetSent?: boolean;
+  confirmInfo?: boolean;
   next?: string;
 }) {
   const { openForgot } = useAuthOverlay();
@@ -24,6 +26,9 @@ export function LoginForm({
         <Alert variant="info">
           If an account exists for that email, a reset link is on its way.
         </Alert>
+      )}
+      {confirmInfo && (
+        <Alert variant="info">Your email is confirmed. Enter your email and password to log in.</Alert>
       )}
       <form action={login} className="space-y-4">
         {next && <input type="hidden" name="next" value={next} />}

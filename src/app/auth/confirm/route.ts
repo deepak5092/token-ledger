@@ -27,6 +27,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}${next}`);
     }
 
+    // Signup-confirmation links get pre-fetched by email security scanners
+    // (Microsoft Defender Safe Links, Proofpoint, etc.) before the user
+    // clicks them, which silently consumes the single-use token and
+    // confirms the account server-side. The user's own click then fails
+    // verifyOtp even though their email is already confirmed -- so instead
+    // of a scary "invalid link" error, point them straight at the login
+    // form, where signing in will just work.
+    if (type === "email") {
+      return NextResponse.redirect(`${origin}/login?info=confirm`);
+    }
+
     return NextResponse.redirect(
       `${origin}/login?error=${encodeURIComponent(error.message)}`,
     );

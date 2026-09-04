@@ -7,12 +7,18 @@ import { HomeContent } from "@/components/marketing/HomeContent";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string; resetSent?: string }>;
+  searchParams: Promise<{ error?: string; next?: string; resetSent?: string; info?: string }>;
 }) {
-  const { error, next, resetSent } = await searchParams;
+  const { error, next, resetSent, info } = await searchParams;
 
   return (
-    <AuthOverlay initialMode="login" error={error} resetSent={resetSent === "1"} next={next}>
+    <AuthOverlay
+      initialMode="login"
+      error={error}
+      resetSent={resetSent === "1"}
+      confirmInfo={info === "confirm"}
+      next={next}
+    >
       <HomeContent />
     </AuthOverlay>
   );
