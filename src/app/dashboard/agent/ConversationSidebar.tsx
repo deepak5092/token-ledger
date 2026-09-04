@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Plus, Trash2, MessageSquare } from "lucide-react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Plus, Trash2, MessageSquare, X } from "lucide-react";
 import type { ConversationSummary } from "@/lib/agent/conversations";
 import { cn } from "@/lib/cn";
 
@@ -10,16 +10,27 @@ import { cn } from "@/lib/cn";
 // keeps updated_at current server-side). `refreshKey` is bumped by the
 // parent whenever a conversation is created or a turn completes, since
 // this component has no other way to know its list is stale.
+//
+// Rendered twice, same as SidebarNav's own desktop/mobile split: an
+// always-visible inline column at lg+ (identical markup/classes to before
+// this had a mobile variant at all, so desktop is untouched), and a
+// backdrop + slide-over drawer below lg, opened via the toggle button
+// ChatPanel renders next to ThemeToggle -- a fixed 16rem inline column
+// left barely any room for the chat itself on a phone-width screen.
 export function ConversationSidebar({
   activeId,
   refreshKey,
   onSelect,
   onNew,
+  mobileOpen,
+  onMobileClose,
 }: {
   activeId: string | null;
   refreshKey: number;
   onSelect: (id: string) => void;
   onNew: () => void;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -40,18 +51,35 @@ export function ConversationSidebar({
     refresh();
   }, [refresh, refreshKey]);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onMobileClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [mobileOpen, onMobileClose]);
+
   const remove = async (id: string) => {
     setConversations((cs) => cs.filter((c) => c.id !== id));
     if (activeId === id) onNew();
     await fetch(`/api/conversations/${id}`, { method: "DELETE" });
   };
 
-  return (
-    <div className="flex h-full w-64 shrink-0 flex-col border-r border-zinc-200 dark:border-zinc-800">
+  const select = (id: string) => {
+    onSelect(id);
+    onMobileClose();
+  };
+
+  const newChat = () => {
+    onNew();
+    onMobileClose();
+  };
+
+  const content = (): ReactNode => (
+    <>
       <div className="p-3">
         <button
           type="button"
-          onClick={onNew}
+          onClick={newChat}
           className="flex w-full items-center gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
         >
           <Plus className="h-4 w-4" aria-hidden />
@@ -65,10 +93,10 @@ export function ConversationSidebar({
         {conversations.map((c) => (
           <div
             key={c.id}
-            onClick={() => onSelect(c.id)}
+            onClick={() => select(c.id)}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && onSelect(c.id)}
+            onKeyDown={(e) => e.key === "Enter" && select(c.id)}
             className={cn(
               "group flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
               c.id === activeId
@@ -92,6 +120,37 @@ export function ConversationSidebar({
           </div>
         ))}
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop: identical to the pre-mobile-support markup, just gated
+          behind lg: instead of being unconditional. */}
+      <div className="hidden h-full w-64 shrink-0 flex-col border-r border-zinc-200 lg:flex dark:border-zinc-800">
+        {content()}
+      </div>
+
+      {/* Mobile: backdrop + slide-over drawer, matching SidebarNav's own. */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-black/40" onClick={onMobileClose} aria-hidden />
+          <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-lg dark:bg-black">
+            <div className="flex items-center justify-between px-3 pt-3">
+              <span className="text-sm font-medium text-foreground">Chat history</span>
+              <button
+                type="button"
+                onClick={onMobileClose}
+                aria-label="Close chat history"
+                className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+              >
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+            {content()}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

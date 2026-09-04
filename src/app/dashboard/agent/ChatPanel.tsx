@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { Bot, ArrowUp, FileDown } from "lucide-react";
+import { Bot, ArrowUp, FileDown, PanelLeft } from "lucide-react";
 import { useAgentChat } from "@/lib/agent/useAgentChat";
 import type { ChatMessage } from "@/lib/agent/stream-client";
 import { ConversationSidebar } from "./ConversationSidebar";
@@ -52,6 +52,7 @@ export function ChatPanel() {
     onTurnComplete: () => setRefreshKey((k) => k + 1),
   });
 
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -110,7 +111,19 @@ export function ChatPanel() {
         refreshKey={refreshKey}
         onSelect={onSelectConversation}
         onNew={onNewChat}
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
       />
+      {/* Only below lg: at lg+ the sidebar is always visible inline, same
+          as before this had a mobile variant, so there's nothing to toggle. */}
+      <button
+        type="button"
+        onClick={() => setMobileSidebarOpen(true)}
+        aria-label="Show chat history"
+        className="absolute top-2 left-2 z-10 flex h-8 w-8 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-400 lg:hidden"
+      >
+        <PanelLeft className="h-4 w-4" aria-hidden />
+      </button>
       <div className="flex h-full min-w-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col px-4">
