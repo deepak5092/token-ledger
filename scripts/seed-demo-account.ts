@@ -21,7 +21,10 @@
 // Safe to re-run without --rotate: reuses the existing user/connections
 // instead of duplicating them, and usage_records are upserted on
 // (connection_id, date, model), so re-running just refreshes the same
-// deterministic dataset.
+// deterministic dataset. Also seeds a few sample Ask Agent conversations
+// the first time (so the chat history sidebar isn't empty), but never
+// again after that -- unlike usage_records, conversations are real rows a
+// demo visitor's own chat naturally adds to, so this must not clobber them.
 
 import { createClient } from "@supabase/supabase-js";
 import crypto from "node:crypto";
@@ -97,6 +100,85 @@ async function getOrCreateConnection(userId: string, provider: string): Promise<
   return data.id as string;
 }
 
+// Sample chat history for the Ask Agent page's sidebar, so a visitor sees
+// a populated conversation list instead of "No conversations yet." Only
+// runs once (skipped if this account already has any conversations) --
+// unlike usage_records, these are real rows a demo visitor's own chat
+// naturally adds to, so re-running the seed script must never wipe them.
+const DEMO_CONVERSATIONS: {
+  title: string;
+  messages: { role: "user" | "assistant"; content: string; file?: { url: string; label: string } }[];
+}[] = [
+  {
+    title: "Which model cost the most last month?",
+    messages: [
+      { role: "user", content: "Which model cost the most last month?" },
+      {
+        role: "assistant",
+        content:
+          "gpt-5.4 was the most expensive model over the last 30 days, driving roughly a third of total spend. Claude Sonnet 5 was a close second.",
+      },
+    ],
+  },
+  {
+    title: "How does this week compare to last week?",
+    messages: [
+      { role: "user", content: "How does this week compare to last week?" },
+      {
+        role: "assistant",
+        content:
+          "This week's spend is running about 6 percent higher than last week, mostly from more Claude Opus 5 calls. Token volume is up too, so it looks like real usage growth rather than just a pricier model mix.",
+      },
+    ],
+  },
+  {
+    title: "Create a PDF report for the last 30 days",
+    messages: [
+      { role: "user", content: "Create a PDF report for the last 30 days" },
+      {
+        role: "assistant",
+        content:
+          "Here's your spend report for the last 30 days: daily spend, a moving-average trend, summary stats, and a cost-vs-tokens page.",
+        file: {
+          url: "/api/reports/custom?format=pdf&days=30&metrics=cost&group_by=day&title=Spend%20report%2C%20last%2030%20days",
+          label: "Spend report, last 30 days.pdf",
+        },
+      },
+    ],
+  },
+];
+
+async function seedConversations(userId: string) {
+  const { count } = await admin
+    .from("agent_conversations")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+  if (count && count > 0) {
+    console.log(`  ${count} conversation(s) already exist, skipping (never overwrites real chat history)`);
+    return;
+  }
+
+  for (const convo of DEMO_CONVERSATIONS) {
+    const { data: conversation, error } = await admin
+      .from("agent_conversations")
+      .insert({ user_id: userId, title: convo.title })
+      .select("id")
+      .single();
+    if (error || !conversation) throw error ?? new Error("conversation insert returned no row");
+
+    const rows = convo.messages.map((m) => ({
+      conversation_id: conversation.id,
+      role: m.role,
+      content: m.content,
+      file_url: m.file?.url ?? null,
+      file_label: m.file?.label ?? null,
+    }));
+    const { error: msgError } = await admin.from("agent_messages").insert(rows);
+    if (msgError) throw msgError;
+  }
+  console.log(`  seeded ${DEMO_CONVERSATIONS.length} conversations`);
+}
+
 async function seedUsage(connectionId: string, records: NormalizedUsageRecord[]) {
   if (records.length === 0) {
     console.log("  no records generated, skipping");
@@ -123,6 +205,9 @@ async function main() {
   console.log("\nOpenAI (demo-only synthetic):");
   const openaiId = await getOrCreateConnection(userId, "openai");
   await seedUsage(openaiId, generateSyntheticOpenAIUsage(openaiId));
+
+  console.log("\nAsk Agent chat history:");
+  await seedConversations(userId);
 
   console.log("\nDone.");
   console.log(`Demo login: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`);

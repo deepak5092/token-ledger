@@ -58,7 +58,7 @@ export function ConversationSidebar({
           New chat
         </button>
       </div>
-      <div className="flex-1 space-y-0.5 overflow-y-auto px-2 pb-3">
+      <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-2 pb-3">
         {loaded && conversations.length === 0 && (
           <p className="px-2 py-4 text-center text-xs text-zinc-500">No conversations yet.</p>
         )}
