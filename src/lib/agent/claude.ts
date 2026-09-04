@@ -124,9 +124,8 @@ export async function* runAgentLoopStream(
           block.name,
           block.input as Record<string, unknown>,
         );
-        // Every file-producing tool (generate_spend_report, generate_spend_export,
-        // ...) returns this same { report_url, label } shape, so the file
-        // event doesn't need to special-case tool names.
+        // Any file-producing tool returns this same { report_url, label }
+        // shape, so the file event doesn't need to special-case tool names.
         if (result && typeof result === "object" && "report_url" in result && "label" in result) {
           const { report_url, label } = result as { report_url: string; label: string };
           yield { type: "file", url: report_url, label };
