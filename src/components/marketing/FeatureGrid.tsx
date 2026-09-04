@@ -1,4 +1,4 @@
-import { Plug, TrendingUp, AlertTriangle, Calculator, MessagesSquare } from "lucide-react";
+import { Plug, TrendingUp, AlertTriangle, Calculator, MessagesSquare, FileSpreadsheet } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 
 const FEATURES = [
@@ -31,6 +31,12 @@ const FEATURES = [
     title: "Ask instead of digging",
     description:
       "A Claude agent with real tool access answers questions about your usage data directly. It queries the data; it doesn't guess.",
+  },
+  {
+    icon: FileSpreadsheet,
+    title: "Export exactly what you ask for",
+    description:
+      "Tell the agent what you want as a PDF or Excel file -- spend, input tokens, output tokens, or total tokens, by day, by model, or by provider, with a moving average or a two-metric comparison chart -- and it builds that specific file on the spot, not a fixed template.",
   },
 ];
 
