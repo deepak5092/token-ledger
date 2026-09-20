@@ -12,6 +12,7 @@ convention but is untested against the actual deployed runtime.
 """
 
 import json
+import sys
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler
 
@@ -22,6 +23,15 @@ from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 SEASONAL_PERIOD = 7  # weekly seasonality in daily spend data
 MIN_FOR_SEASONAL = SEASONAL_PERIOD * 2  # ETS needs >=2 full cycles to fit one
 MIN_FOR_TREND = 4
+
+# This function is reachable without authentication -- it is a pure
+# compute endpoint that reads no database and returns only what the caller
+# POSTed, so it leaks nothing, but an unbounded `days` or `history` would
+# let anyone spend arbitrary CPU on an ETS fit at the project's expense.
+# Both are clamped to well past anything the dashboard actually asks for
+# (14 days ahead, a few hundred points of history).
+MAX_DAYS = 90
+MAX_HISTORY_POINTS = 3000
 
 
 def compute_forecast(history: list[dict], days: int = 14) -> list[dict]:
@@ -98,17 +108,34 @@ class handler(BaseHTTPRequestHandler):
             return
 
         history = body.get("history")
-        days = int(body.get("days", 14))
 
         if not isinstance(history, list) or not history:
             self._respond(400, {"error": "history must be a non-empty array"})
             return
 
+        if len(history) > MAX_HISTORY_POINTS:
+            self._respond(400, {"error": "history is too large"})
+            return
+
+        try:
+            days = int(body.get("days", 14))
+        except (TypeError, ValueError):
+            self._respond(400, {"error": "days must be an integer"})
+            return
+
+        if days < 1 or days > MAX_DAYS:
+            self._respond(400, {"error": f"days must be between 1 and {MAX_DAYS}"})
+            return
+
         try:
             forecast = compute_forecast(history, days)
             self._respond(200, {"forecast": forecast})
-        except Exception as exc:  # noqa: BLE001 — surface the real error to the caller
-            self._respond(500, {"error": str(exc)})
+        except Exception as exc:  # noqa: BLE001
+            # The real exception can carry pandas/statsmodels internals and
+            # echo back caller-supplied values; log it server-side and hand
+            # the caller a generic failure instead.
+            print(f"[forecast] compute failed: {exc!r}", file=sys.stderr)
+            self._respond(500, {"error": "could not compute a forecast for this input"})
 
     def _respond(self, status: int, payload: dict):
         body = json.dumps(payload).encode()

@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { syncConnection, type SyncableConnection } from "@/lib/sync/syncConnection";
@@ -14,9 +15,19 @@ export const maxDuration = 300;
 // bearer token automatically when CRON_SECRET is set in the project's env
 // vars; anything else (a stray request, a scan) gets rejected here before
 // touching the service-role client.
+// Constant-time compare so the number of matching leading bytes can't be
+// inferred from response timing. Hashing first gives both sides a fixed,
+// equal length, which timingSafeEqual requires (it throws otherwise, and
+// a length check before it would leak the secret's length by itself).
+function matchesCronSecret(authHeader: string | null, secret: string): boolean {
+  const provided = createHash("sha256").update(authHeader ?? "").digest();
+  const expected = createHash("sha256").update(`Bearer ${secret}`).digest();
+  return timingSafeEqual(provided, expected);
+}
+
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret || !matchesCronSecret(request.headers.get("authorization"), secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -1,6 +1,7 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 // Handles the signup-confirmation link. Requires the Supabase project's
 // "Confirm signup" email template to link here with a token_hash, e.g.
@@ -17,7 +18,13 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/dashboard";
+  // Constrained to an on-origin path before it is concatenated onto
+  // `origin` below -- `origin` carries no trailing slash, so an
+  // unvalidated value like "@evil.com" would land in the authority
+  // component and redirect off-site. An attacker can mint a valid
+  // token_hash by signing up themselves, so verifyOtp succeeding is
+  // not a meaningful barrier here.
+  const next = safeNextPath(searchParams.get("next"));
 
   if (token_hash && type) {
     const supabase = await createClient();

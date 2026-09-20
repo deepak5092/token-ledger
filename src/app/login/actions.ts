@@ -2,13 +2,17 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/safe-redirect";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
-  const next = (formData.get("next") as string) || "/dashboard";
+  // Untrusted: it round-trips through a hidden form field seeded from
+  // ?next=, so an attacker can put an absolute URL there and bounce the
+  // user off-site immediately after a genuine sign-in.
+  const next = safeNextPath(formData.get("next") as string);
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
