@@ -54,16 +54,16 @@ flowchart TB
         Claude["Claude API\n(agent tool-use loop)"]
     end
 
-    UI <-->|RLS-scoped queries,\nsession cookie| RSC
-    RSC -->|auth.getUser()| Auth
-    RSC -->|anon key, user session| DB
-    RSC -->|encrypt/decrypt via\nSECURITY DEFINER RPCs| Vault
-    RSC -->|forecast request| Forecast
-    RSC -->|tool-use loop| Claude
-    Claude -.->|calls back into| RSC
+    UI <-->|"RLS-scoped queries"| RSC
+    RSC -->|"checks session"| Auth
+    RSC -->|"anon key, user session"| DB
+    RSC -->|"encrypt / decrypt secret"| Vault
+    RSC -->|"forecast request"| Forecast
+    RSC -->|"tool-use loop"| Claude
+    Claude -.->|"calls back into"| RSC
 
-    Cron -->|service-role client,\nbearer-token auth| DB
-    Cron -->|decrypted key| Vault
+    Cron -->|"service-role client"| DB
+    Cron -->|"decrypted key"| Vault
     Cron --> Anthropic
     Cron --> OpenAI
 ```
